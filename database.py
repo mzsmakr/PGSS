@@ -227,6 +227,9 @@ def update_raid_egg(session, fort_id, level, time_battle):
     raid.time_spawn = time_battle - 3600
     raid.time_battle = time_battle
     raid.time_end = time_battle + 2700
+    raid.move_1 = 0
+    raid.move_2 = 0
+    raid.cp = 0
     session.commit()
 
 def update_raid_mon(session, fort_id, pokemon_id):
@@ -236,6 +239,9 @@ def update_raid_mon(session, fort_id, pokemon_id):
         session.commit()
         raid = session.query(Raid).filter_by(fort_id=str(fort_id)).first()        
     raid.pokemon_id = int(pokemon_id)
+    raid.move_1 = 133
+    raid.move_2 = 133
+    raid.cp = 0
     session.commit()
     
 def updata_fort_sighting(session, fort_id, unix_time):
@@ -246,6 +252,7 @@ def updata_fort_sighting(session, fort_id, unix_time):
         fort_sighting = session.query(FortSighting).filter_by(fort_id=str(fort_id)).first()            
     fort_sighting.updated = int(unix_time)
     fort_sighting.last_modified = int(unix_time)
+    fort_sighting.team = 0
     session.commit()
 
 def add_gym_image(session,fort_id,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2):
