@@ -1,5 +1,5 @@
 # PGSS ( Pokemon Go Screenshot Scanner) 
-PGSS scans raid near by images and identifies Gym,Raid Egg/Boss and time and then updates monocle hydro database. PGSS also works as backend for RealDeviceRaidMap. Most of gym iamges are identified automatically.
+PGSS scans raid near by images and identifies Gym,Raid Egg/Boss and time and then updates monocle hydro database. PGSS also works as backend for RealDeviceRaidMap. Most of gym images are identified automatically.
 
 ## Features
 1. Read raid near by sighting images and identify
@@ -41,14 +41,14 @@ Download all fort URL images in `Forts` table. Set `MAP_START` and `MAP_END` in 
 1. Install Python 3.6
  * macOS : I download from here <https://www.python.org/downloads/release/python-365/> and install
  * Linux (Ubuntu example)
-    `
+    ```
     apt-get install build-essential
     sudo add-apt-repository ppa:jonathonf/python-3.6
     apt-get update
     sudo apt-get install python3.6 python3.6-dev
     wget https://bootstrap.pypa.io/get-pip.py
     sudo python3.6 get-pip.py
-    `
+    ```
     There are many other way to install python3.6. Google it.
 3. Install tesseract 
  * macOS : `brew install tesseract`
@@ -66,7 +66,7 @@ Download all fort URL images in `Forts` table. Set `MAP_START` and `MAP_END` in 
     `pip3.6 install -r requirements.txt -U`
     * If you don't have MySQL on your machine, comment out mysqlclient
     * If you don't have Postgresql on your machine, commment out psycopg2 and psycopg2-binary
-7. Configure config.py to set your monocle database and set 
+7. Configure config.py to set your monocle database and set discord server setting if you use rssbot.py 
 8. Run `python3.6 downloadfortimg.py`. If you don't want to download whole fort images in database, set `MAP_START` and `MAP_END` in `config.py`.
 9. Run `python3.6 raidscan.py` from the command line. When first run, raid_images and pokemon_images tables are added automatically.
 10. **Note. If you were running crop.bash for Frontend of ReadDevicePokeMap, stop crop.bash before running raidscan.py. raidscan.py itself gets screenshot image and crop with crop.py**. Don't worry, PGSS can identify gym images up to 99% of gyms automatically (without user input).
