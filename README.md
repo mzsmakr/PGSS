@@ -31,11 +31,15 @@ Download all fort URL images in `Forts` table. Set `MAP_START` and `MAP_END` in 
 ### manualsubmit.py
 `manualsubmit.py` update `fort_id` in `gym_images` and `pokemon_id` in `pokemon_images` by reading `Fort_xxx.png` and `Pokemon_yyy.png` in `not_find_img`. User need to set xxx for `fort_id` and yyy for `pokedex id` manually. This part need to be integrated with `Frontend` of RealDeviceRaidMap in the future.
 
+### rssbot.py
+Discord bot to download user submitted raid nearby in your discord server. It saves to `SCREENSHOT_SAVE_PATH` in config.py.
+
 ### Running order
 1. Copy config.example.py and rename to config.py. Configure config.py based on your setup.
 2. Run `python3.6 downloadfortimg.py` once to download all gym(fort) URL images
 3. Run `python3.6 raidscan.py` start raid iamge scanning
-4. Run `python3.6 manualsubmit.py` once you set `Fort_xxx.png` and `Pokemon_yyy.png` in `not_find_img` directory.
+4. Run `python3.6 rssbot.py` to start downloading user posted screenshot image on your discord server
+5. If PGSS can't find gym then the gym image is saved in `not_find_img`. Check the images in the directory and identify the gym. Then rename the image to `Fort_xxx.png` or `Pokemon_yyy.png`. Then Run `python3.6 manualsubmit.py`. `manualsubmit.py` updates `fort_id` to xxx in `raid_images` and `pokemon_id` to yyy in `pokemon_images` table.
 
 ## Setting up
 1. Install Python 3.6
