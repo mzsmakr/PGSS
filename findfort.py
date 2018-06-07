@@ -110,7 +110,7 @@ async def findfort_main():
             await run_fortmatching(session, fort_fullpath_filename)
         LOG.info('{} new fort image processed'.format(new_img_count))
         session.close()
-        await asyncio.sleep(30)
+        await asyncio.sleep(10)
         
     LOG.info('Done')
     return

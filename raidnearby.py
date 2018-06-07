@@ -9,7 +9,7 @@ import shutil
 from PIL import Image
 import pytesseract
 import datetime
-from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, Formatter
+from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, CRITICAL, Formatter, handlers
 import time
 import database
 import asyncio
@@ -24,6 +24,15 @@ console=StreamHandler();
 console.setLevel(INFO)
 console.setFormatter(logFormatter)
 LOG.addHandler(console)
+
+rfh = handlers.RotatingFileHandler(
+    filename=logpath,
+    maxBytes=16384,
+    backupCount=3
+)
+rfh.setLevel(CRITICAL)
+rfh.setFormatter(logFormatter)
+LOG.addHandler(rfh)
 
 LOG.info('Pokemon Screenshot Raid Scan Started')
 
@@ -264,6 +273,8 @@ def detectMon(img):
     min_error = 10000000
     mon_id = 0
     mon_image_id = 0
+
+    unknown_mon_num = 0
     
     # get error from all gyms
     for mon in mon_db:
@@ -280,6 +291,13 @@ def detectMon(img):
             min_error = error
             mon_id = mon.pokemon_id
             mon_image_id = mon.id
+        if int(mon.pokemon_id) == 0:
+            unknown_mon_num = unknown_mon_num + 1
+
+    if unknown_mon_num != 0:
+        mon_db = [ mon for mon in database.get_pokemon_images(session)]
+        LOG.info('{} Unknown pokemon in DB'.format(unknown_mon_num))
+        LOG.info('PokemonImages table reloaded : {}'.format(len(mon_db)))          
 
     if min_error > 5:
         mon_id = -1
@@ -385,18 +403,6 @@ def isRaidSighting(img):
         LOG.info('No raid sightings')
         ret = False
     return ret
-
-def reloadGymImagesDB():
-    global gym_db
-    global unknown_fort_id
-    unknoun_gym_num = 0
-    LOG.info('{} gyms in db'.foramt(len(gym_db)))    
-    for gym in gym_db:
-        if int(gym.fort_id) == int(unknown_fort_id):
-            unknown_gym_num += 1
-    LOG.info('{} unknown gym in db'.foramt(unknoun_gym_num))
-    if unknoun_gym_num != 0:    
-        gym_db = [ gym for gym in database.get_gym_images(session)]
 
 def reloadPokemonImagesDB():
     global mon_db
@@ -527,10 +533,8 @@ async def processRaidImage(raidfilename):
 
 async def main():
     while True:
-#        reloadGymImagesDB()
         for fullpath_filename in p.glob('*.png'):
             await processRaidImage(fullpath_filename)
-#        time.sleep(3)
         await asyncio.sleep(3) 
     session.close()
 
