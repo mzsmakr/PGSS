@@ -23,7 +23,6 @@ async def on_message(message):
     if message.author == client.user:
         return
     
-    print(message.channel.id)
     for channel in RAID_IMAGE_CHANNELS:
         if message.channel.id == channel:
             print(message.attachments)
