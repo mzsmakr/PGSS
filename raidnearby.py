@@ -21,7 +21,7 @@ basicConfig(filename=logpath, format=log_fmt, level=DEBUG)
 
 LOG = getLogger('')
 console=StreamHandler();
-console.setLevel(DEBUG)
+console.setLevel(INFO)
 console.setFormatter(logFormatter)
 LOG.addHandler(console)
 
@@ -373,7 +373,7 @@ def isRaidSighting(img):
     ret = True
     LOG.debug('image mean :{}'.format(img.mean()))
     if int(img.mean()) > 240:
-        LOG.debug('No raid sightings')
+        LOG.info('No raid sightings')
         ret = False
     return ret
 

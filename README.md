@@ -1,5 +1,5 @@
 # PGSS ( Pokemon Go Screenshot Scanner) 
-PGSS scans raid near by images and identifies Gym,Raid Egg/Boss and time and then updates monocle hydro database. PGSS also works as backend for RealDeviceRaidMap. Most of gym images are identified automatically.
+PGSS scans raid near by images and identifies Gym,Raid Egg/Boss and time and then updates monocle hydro database. PGSS also works as backend for RealDeviceRaidMap(<https://github.com/123FLO321/RealDeviceRaidMap/>). Most of gym images are identified automatically.
 
 ## Features
 1. Read raid near by sighting images and identify
@@ -16,7 +16,7 @@ PGSS scans raid near by images and identifies Gym,Raid Egg/Boss and time and the
 * Python 3.6
 * Tesseract
 * Linux/macOS. Never tested on Windows.
-* macOS and iOS required for RealDeviceRaidMap(<https://github.com/123FLO321/RealDeviceRaidMap/>)
+* macOS and iOS are required for RealDeviceRaidMap(<https://github.com/123FLO321/RealDeviceRaidMap/>) to fully automate raids scan. 
 
 ## How it works
 ### raidnearby.py
@@ -32,7 +32,7 @@ Download all fort URL images in `Forts` table. Set `MAP_START` and `MAP_END` in 
 `manualsubmit.py` update `fort_id` in `gym_images` and `pokemon_id` in `pokemon_images` by reading `Fort_xxx.png` and `Pokemon_yyy.png` in `not_find_img`. User need to set xxx for `fort_id` and yyy for `pokedex id` manually. This part need to be integrated with `Frontend` of RealDeviceRaidMap in the future.
 
 ### rssbot.py
-Discord bot to download user submitted raid nearby in your discord server. It saves to `SCREENSHOT_SAVE_PATH` in config.py.
+Discord bot to download user submitted raid nearby in your discord server. It saves to `SCREENSHOT_SAVE_PATH` in config.py. To create discord bot 
 
 ### Running order
 1. Copy config.example.py and rename to config.py. Configure config.py based on your setup.
@@ -43,7 +43,7 @@ Discord bot to download user submitted raid nearby in your discord server. It sa
 
 ## Setting up
 1. Install Python 3.6
- * macOS : I download from here <https://www.python.org/downloads/release/python-365/> and install
+ * macOS : I downloaded from here <https://www.python.org/downloads/release/python-365/> and installed
  * Linux (Ubuntu example)
     ```
     apt-get install build-essential
