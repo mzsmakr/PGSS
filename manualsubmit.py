@@ -5,7 +5,7 @@ from pathlib import Path
 import os
 import shutil
 import database as db
-import raidscan as rs
+import raidnearby as rs
 
 Force_update = False
 print(len(argv))
@@ -19,6 +19,7 @@ training_image_path = os.getcwd() + '/not_find_img'
 p = Path(training_image_path)
 
 url_image_path = os.getcwd() + '/url_img/'
+not_valid_img_path = os.getcwd() + '/not_valid_img/'
 
 print('***************************************************')
 print('File name formating')
@@ -31,6 +32,11 @@ print('***************************************************')
 
 fort_count = 0
 pokemon_count = 0
+
+file_path = os.path.dirname(not_valid_img_path)
+if not os.path.exists(file_path):
+    os.makedirs(file_path)
+
 
 for fullpath_filename in p.glob('*.png'):
     filename = os.path.basename(fullpath_filename)
@@ -66,7 +72,7 @@ for fullpath_filename in p.glob('*.png'):
             gym_image_id = rs.get_gym_image_id(img)
             not_fort_id = db.get_not_a_fort_id(session)
             if db.update_gym_image(session,gym_image_id,not_fort_id) == True:
-                fort_dest_file = os.getcwd() + '/not_valid_img/not_valid_' + str(gym_image_id) + '.png'
+                fort_dest_file = not_valid_img_path + 'not_valid_' + str(gym_image_id) + '.png'
                 shutil.move(fullpath_filename, fort_dest_file)
                 print('gym image id:', gym_image_id, 'is set as not valid')
             

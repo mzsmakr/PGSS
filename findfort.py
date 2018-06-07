@@ -6,10 +6,11 @@ import os
 import shutil
 import matching as mt
 import database as db
-import raidscan as rs
+import raidnearby as rs
 import time
 from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, Formatter
 import asyncio
+import math
 
 LOG = getLogger('')
 
@@ -40,6 +41,7 @@ async def run_fortmatching(session, fort_fullpath_filename):
             LOG.error('Matching error')
     LOG.info('fort_filename:{} max_fort_id: {} max_value: {}'.format(fort_filename,max_fort_id, max_value))
     if float(max_value) >= 0.85:
+        LOG.info(str(fort_fullpath_filename))
         img = cv2.imread(str(fort_fullpath_filename),3)
         gym_image_id = rs.get_gym_image_id(img)
         gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
@@ -56,6 +58,8 @@ async def run_fortmatching(session, fort_fullpath_filename):
                 LOG.info('and run submit.py again')       
         fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '.png'
         url_result_file = os.getcwd() + '/success_img/Fort_'+str(max_fort_id) + '_url.jpg'
+        process_img_path = os.getcwd() + '/process_img/Fort_' + str(max_fort_id) + '.png'
+        shutil.copy(fort_fullpath_filename, process_img_path)
         shutil.move(fort_fullpath_filename, fort_result_file)
         shutil.copy(max_url_fullpath_filename, url_result_file)
         LOG.info('Successfully found fort id: {}'.format(max_fort_id))

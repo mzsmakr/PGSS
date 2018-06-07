@@ -131,6 +131,8 @@ def detectGym(raid_img):
     LOG.info('Gyms in gym_images: {}'.format(len(gym_db)))
     LOG.debug('top_mean0:{} top_mean1:{} top_mean2:{} left_mean0:{} left_mean1:{} left_mean2:{} '.format(top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2))
 
+    unknown_gym_num = 0
+
     for gym in gym_db:
         dif1 = pow(top_mean0 - gym.param_1,2)
         dif2 = pow(top_mean1 - gym.param_2,2)
@@ -145,6 +147,13 @@ def detectGym(raid_img):
             min_error = error
             gym_id = gym.fort_id
             gym_image_id = gym.id
+        if int(gym.fort_id) == int(unknown_fort_id):
+            unknown_gym_num = unknown_gym_num + 1
+            
+    if unknown_gym_num != 0:
+        gym_db = [ gym for gym in database.get_gym_images(session)]
+        LOG.info('{} Unknown gym in DB'.format(unknown_gym_num))
+        LOG.info('GymImage reloaded : {}'.format(len(gym_db)))
 
     if min_error > 10:
         LOG.info('gym_id:{} min_error:{}'.format(gym_id, min_error))
@@ -377,6 +386,30 @@ def isRaidSighting(img):
         ret = False
     return ret
 
+def reloadGymImagesDB():
+    global gym_db
+    global unknown_fort_id
+    unknoun_gym_num = 0
+    LOG.info('{} gyms in db'.foramt(len(gym_db)))    
+    for gym in gym_db:
+        if int(gym.fort_id) == int(unknown_fort_id):
+            unknown_gym_num += 1
+    LOG.info('{} unknown gym in db'.foramt(unknoun_gym_num))
+    if unknoun_gym_num != 0:    
+        gym_db = [ gym for gym in database.get_gym_images(session)]
+
+def reloadPokemonImagesDB():
+    global mon_db
+    unknoun_mon_num = 0
+    LOG.info('{} mons in db'.foramt(len(mon_db)))    
+    for mon in mon_db:
+        if mon.pokemon_id == 0:
+            unknoun_mon_num += 1
+    LOG.info('{} unknown mon in db'.foramt(unknoun_mon_num))
+    if unknoun_mon_num != 0:    
+        mon_db = [ mon for mon in database.get_pokemon_images(session)]
+
+
 async def processRaidImage(raidfilename):
     filename = os.path.basename(raidfilename)
     LOG.info('process {}'.format(filename))
@@ -416,7 +449,7 @@ async def processRaidImage(raidfilename):
     if unix_time - file_update_time > 1800:
         LOG.info('File is too old')
         update_raid = False
-    if int(gym) > 0 and int(gym) != not_a_fort_id and int(gym) != unknown_fort_id:
+    if int(gym) > 0 and int(gym) != int(not_a_fort_id) and int(gym) != int(unknown_fort_id):
         if egg == True:
             hatch_time = getHatchTime(time_text)
             spawn_time = hatch_time - 3600
@@ -494,6 +527,7 @@ async def processRaidImage(raidfilename):
 
 async def main():
     while True:
+#        reloadGymImagesDB()
         for fullpath_filename in p.glob('*.png'):
             await processRaidImage(fullpath_filename)
 #        time.sleep(3)
