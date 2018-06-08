@@ -51,24 +51,40 @@ async def run_fortmatching(session, fort_fullpath_filename):
             unknown_fort_id = db.get_unknown_fort_id(session)
             LOG.info('gym_images id:{} fort_id:{} unknow_fort_id:{}'.format(gym_image_id,gym_image_fort_id,unknown_fort_id))
             if gym_image_fort_id == unknown_fort_id:
-                db.update_gym_image(session,gym_image_id,max_fort_id)
+                try:
+                    db.update_gym_image(session,gym_image_id,max_fort_id)
+                except:
+                    LOG.error('Error to update gym_images for gym_images.id:{} gym_images.fort_id:{}'.format(gym_image_id,max_fort_id))
+                    fort_result_file = os.getcwd() + '/not_find_img/Fort_' + str(max_fort_id) + '.png'
+                    url_result_file = os.getcwd() + '/not_find_img/Fort_'+str(max_fort_id) + '_url.jpg'
+                    shutil.move(fort_fullpath_filename, fort_result_file)
+                    shutil.copy(max_url_fullpath_filename, url_result_file)
+                    LOG.error('Successfully found fort fort_id:{}, but failed to updata gym_images database. Check not_find_img with the fort_id'.format(max_fort_id))
+                else:
+                    fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '.png'
+                    url_result_file = os.getcwd() + '/success_img/Fort_'+str(max_fort_id) + '_url.jpg'
+                    process_img_path = os.getcwd() + '/process_img/Fort_' + str(max_fort_id) + '.png'
+                    shutil.copy(fort_fullpath_filename, process_img_path)
+                    shutil.move(fort_fullpath_filename, fort_result_file)
+                    shutil.copy(max_url_fullpath_filename, url_result_file)
+                    LOG.info('Successfully found fort id: {}'.format(max_fort_id))
             else:
-                LOG.info('The gym image is assigned as fort id:', gym_image_fort_id)
-                LOG.info('If the fort id is not correct, delete the gym image id:', gym_image_id)
-                LOG.info('and run submit.py again')       
-        fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '.png'
-        url_result_file = os.getcwd() + '/success_img/Fort_'+str(max_fort_id) + '_url.jpg'
-        process_img_path = os.getcwd() + '/process_img/Fort_' + str(max_fort_id) + '.png'
-        shutil.copy(fort_fullpath_filename, process_img_path)
-        shutil.move(fort_fullpath_filename, fort_result_file)
-        shutil.copy(max_url_fullpath_filename, url_result_file)
-        LOG.info('Successfully found fort id: {}'.format(max_fort_id))
+                LOG.info('The gym image is assigned as fort id:{}'.format(gym_image_fort_id))
+                LOG.info('Check not_find_img directory.')       
+                LOG.info('If the Fort_{}.png and Fort_{}_url.jpg in not_find_img are correct'.format(str(max_fort_id),str(max_fort_id)))
+                LOG.info('Run "python3.6 manualsubmit.py force"'.format(str(max_fort_id),str(max_fort_id)))
+                fort_result_file = os.getcwd() + '/not_find_img/Fort_' + str(max_fort_id) + '.png'
+                url_result_file = os.getcwd() + '/not_find_img/Fort_'+str(max_fort_id) + '_url.jpg'
+                shutil.move(fort_fullpath_filename, fort_result_file)
+                shutil.copy(max_url_fullpath_filename, url_result_file)
     elif float(max_value) >= 0.80:
-        fort_result_file = os.getcwd() + '/need_check_img/Fort_' + str(max_fort_id) + '.png'
-        url_result_file = os.getcwd() + '/need_check_img/Fort_'+str(max_fort_id) + '_url.jpg'
+        fort_result_file = os.getcwd() + '/not_find_img/Fort_' + str(max_fort_id) + '.png'
+        url_result_file = os.getcwd() + '/not_find_img/Fort_'+str(max_fort_id) + '_url.jpg'
         shutil.move(fort_fullpath_filename, fort_result_file)
         shutil.copy(max_url_fullpath_filename, url_result_file)
         LOG.info('Found fort id: {} but need to verify'.format(max_fort_id))
+        LOG.info('If the Fort_{}.png and Fort_{}_url.jpg in not_find_img are correct'.format(str(max_fort_id),str(max_fort_id)))
+        LOG.info('Run "python3.6 manualsubmit.py"'.format(str(max_fort_id),str(max_fort_id)))
     else:
         fort_result_file = os.getcwd() + '/not_find_img/' + str(fort_filename)
         url_result_file = os.getcwd() + '/not_find_img/'+str(max_fort_id) + '.jpg'
@@ -99,7 +115,7 @@ async def findfort_main():
     p = Path(unknown_image_path)
 
     while True:
-        LOG.info('Run find fort task')
+        LOG.debug('Run find fort task')
         session = db.Session()
         max_value = 0.0
         max_fort_id = 0
@@ -108,7 +124,10 @@ async def findfort_main():
         for fort_fullpath_filename in p.glob('GymImage*.png'):
             new_img_count = new_img_count+1
             await run_fortmatching(session, fort_fullpath_filename)
-        LOG.info('{} new fort image processed'.format(new_img_count))
+        if new_img_count != 0:
+            LOG.info('{} new fort image processed'.format(new_img_count))
+        else
+            LOG.debug('{} new fort image processed'.format(new_img_count))
         session.close()
         await asyncio.sleep(10)
         

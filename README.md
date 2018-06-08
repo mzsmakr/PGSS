@@ -32,7 +32,7 @@ Download all fort URL images in `Forts` table. Set `MAP_START` and `MAP_END` in 
 `manualsubmit.py` update `fort_id` in `gym_images` and `pokemon_id` in `pokemon_images` by reading `Fort_xxx.png` and `Pokemon_yyy.png` in `not_find_img`. User need to set xxx for `fort_id` and yyy for `pokedex id` manually. This part need to be integrated with `Frontend` of RealDeviceRaidMap in the future.
 
 ### rssbot.py
-Discord bot to download user submitted raid nearby in your discord server. It saves to `SCREENSHOT_SAVE_PATH` in config.py. To create discord bot 
+Discord bot to download user submitted raid nearby in your discord server. It saves to `SCREENSHOT_SAVE_PATH` in config.py. To create discord bot, check here <https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token>
 
 ### Running order
 1. Copy config.example.py and rename to config.py. Configure config.py based on your setup.
