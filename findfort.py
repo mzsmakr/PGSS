@@ -126,7 +126,7 @@ async def findfort_main():
             await run_fortmatching(session, fort_fullpath_filename)
         if new_img_count != 0:
             LOG.info('{} new fort image processed'.format(new_img_count))
-        else
+        else:
             LOG.debug('{} new fort image processed'.format(new_img_count))
         session.close()
         await asyncio.sleep(10)
