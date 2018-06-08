@@ -72,7 +72,7 @@ class RaidNearby:
         #    LOG.debug('%d %d %d %d %d %d %d %d', gym.id, gym.fort_id, gym.param_1, gym.param_2, gym.param_3, gym.param_4, gym.param_5, gym.param_6)
 
         self.mon_db = [mon for mon in database.get_pokemon_images(self.session)]
-        LOG.info('{} pokemon images loaded'.format(len(mon_db)))
+        LOG.info('{} pokemon images loaded'.format(len(self.mon_db)))
 
         self.unknown_fort_id = database.get_unknown_fort_id(self.session)
         self.not_a_fort_id = database.get_not_a_fort_id(self.session)
