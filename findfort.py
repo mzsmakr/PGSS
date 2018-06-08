@@ -47,6 +47,10 @@ async def run_fortmatching(session, fort_fullpath_filename):
         gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
         if int(max_fort_id) == int(gym_image_fort_id):
             LOG.info('This gym image is already trained')
+            fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '.png'
+            url_result_file = os.getcwd() + '/success_img/Fort_'+str(max_fort_id) + '_url.jpg'
+            shutil.move(fort_fullpath_filename, fort_result_file)
+            shutil.copy(max_url_fullpath_filename, url_result_file)
         else:
             unknown_fort_id = db.get_unknown_fort_id(session)
             LOG.info('gym_images id:{} fort_id:{} unknow_fort_id:{}'.format(gym_image_id,gym_image_fort_id,unknown_fort_id))
