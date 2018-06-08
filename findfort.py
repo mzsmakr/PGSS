@@ -15,7 +15,7 @@ import math
 LOG = getLogger('')
 
 class FindFort:
-    def __init__(self)
+    def __init__(self):
         self.unknown_image_path = os.getcwd() + '/unknown_img'
         self.url_image_path = os.getcwd() + '/url_img'
 

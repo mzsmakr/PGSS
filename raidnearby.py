@@ -38,7 +38,7 @@ LOG.addHandler(rfh)
 LOG.info('Pokemon Screenshot Raid Scan Started')
 
 class RaidNearby:
-    def __init__(self)
+    def __init__(self):
         self.process_img_path = os.getcwd() + '/process_img/'
         self.copy_path = os.getcwd() + '/unknown_img/'
         self.not_find_path = os.getcwd() + '/not_find_img/'
