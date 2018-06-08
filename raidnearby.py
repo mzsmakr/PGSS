@@ -519,7 +519,9 @@ def processRaidImage(raidfilename):
         LOG.info('Raid image is not valid')
     elif int(gym) == unknown_fort_id and egg == True:
         # Send Image to Training Directory
-        LOG.info('Gym image params are in database but the Gym is not known. Fort_id:'.format(gym))
+        LOG.debug('unknown fort id:{}'.format(unknown_fort_id))
+        LOG.debug('    gym fort id:{}'.format(gym))
+        LOG.info('Gym image params are in database but the Gym is not known. Fort_id:{}'.format(gym))
         unknown_gym_name = 'GymImage_'+str(gym_image_id)+'.png'
         fullpath_dest = str(copy_path) + str(unknown_gym_name)
         LOG.info(fullpath_dest)
@@ -541,9 +543,12 @@ def processRaidImage(raidfilename):
     return True
 
 async def main():
+    LOG.debug('Unknown fort id: {}'.format(unknown_fort_id))
+    LOG.debug('Not a fort id: {}'.format(not_a_fort_id))
     while True:
         for fullpath_filename in p.glob('*.png'):
             processRaidImage(fullpath_filename)
+            await asyncio.sleep(0.1)
         await asyncio.sleep(3) 
     session.close()
 
