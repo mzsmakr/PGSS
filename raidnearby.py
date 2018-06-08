@@ -113,7 +113,7 @@ def detectGym(raid_img):
     org_left_w = 25
     
     scale = width/320
-    LOG.info('scale: {}'.format(scale))
+    LOG.debug('raid image scale: {}'.format(scale))
 
     top_y = int(org_top_y*scale)
     top_h = int(org_top_h*scale)
@@ -238,7 +238,7 @@ def detectMon(img):
     org_y7 = [300, 350]    
 
     scale = width/320
-    LOG.info('raid image scale :{}'.format(scale))
+    LOG.debug('raid image scale :{}'.format(scale))
 
     x1 = [int(org_x1[0]*scale), int(org_x1[1]*scale)]
     y1 = [int(org_y1[0]*scale), int(org_y1[1]*scale)]
@@ -406,7 +406,7 @@ def isRaidSighting(img):
     ret = True
     LOG.debug('image mean :{}'.format(img.mean()))
     if int(img.mean()) > 240:
-        LOG.info('No raid sightings')
+        LOG.debug('No raid sightings')
         ret = False
     return ret
 
@@ -424,7 +424,6 @@ def reloadPokemonImagesDB():
 
 def processRaidImage(raidfilename):
     filename = os.path.basename(raidfilename)
-    LOG.info('process {}'.format(filename))
     img_full = cv2.imread(str(raidfilename),3)
 
     now = datetime.datetime.now()
@@ -435,6 +434,8 @@ def processRaidImage(raidfilename):
     if isRaidSighting(img_full) == False:
         os.remove(raidfilename)
         return False
+
+    LOG.info('process {}'.format(filename))
 
     height, width, channel = img_full.shape
     
