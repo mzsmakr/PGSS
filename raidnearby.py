@@ -421,6 +421,7 @@ class RaidNearby:
 
 
     def processRaidImage(self, raidfilename):
+        import pdb; pdb.set_trace()
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
 
