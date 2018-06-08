@@ -37,6 +37,8 @@ async def on_message(message):
                             with open(attachment['filename'], 'wb') as f:
                                 f.write(img)
                                 print(attachment['filename'], 'saved')
-                            shutil.move(attachment['filename'], SCREENSHOT_SAVE_PATH+attachment['filename'])
+                            save_path = SCREENSHOT_SAVE_PATH+attachment['filename']
+                            print(save_path)
+                            shutil.move(attachment['filename'], save_path)
     
 client.run(TOKEN)

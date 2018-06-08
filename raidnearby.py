@@ -13,6 +13,7 @@ from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, I
 import time
 import database
 import asyncio
+import re
 
 log_fmt='%(asctime)s [%(filename)-12.12s] [%(levelname)-5.5s]  %(message)s'
 logFormatter = Formatter(log_fmt)
@@ -367,7 +368,8 @@ def get_pokemon_image_id(img):
     return pokemon_image_id
 
 def detectEgg(data):
-    if data[:7] == 'Ongoing' or data[:4] == 'Raid' or data == '':
+    LOG.debug('time data: {}'.format(data))
+    if data[:2] == 'On' or data[:2] == 'Ra' or data == '':
         return False
     else:
         return True
@@ -376,25 +378,29 @@ def getHatchTime(data):
     zero = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0)
     unix_zero = zero.timestamp()
     LOG.info('hatch_time ={}'.format(data))
-    # US format
-    AM = data.find('AM')
-    PM = data.find('PM')
-    if AM >= 5:
-        hour_min = data[:AM-1].split(':')
-        return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
-    elif PM >= 5:
-        hour_min = data[:PM-1].split(':')
-        if hour_min[0] == '12':
+    hour_min_divider = data.find(':')
+    if hour_min_divider != -1:
+        # US format
+        AM = data.find('AM')
+        PM = data.find('PM')
+        if AM >= 5:
+            hour_min = data[:AM-1].split(':')
             return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+        elif PM >= 5:
+            hour_min = data[:PM-1].split(':')
+            if hour_min[0] == '12':
+                return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+            else:
+                return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
+        # Europe format
         else:
-            return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
-    # Europe format
+            data.replace('~','')
+            data.replace('-','')
+            data.replace(' ','')
+            hour_min = data.split(':')
+            return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
     else:
-        data.replace('~','')
-        data.replace('-','')
-        data.replace(' ','')
-        hour_min = data.split(':')
-        return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+        return -1
         
 def isRaidSighting(img):
     ret = True
@@ -407,7 +413,7 @@ def isRaidSighting(img):
 def reloadPokemonImagesDB():
     global mon_db
     unknoun_mon_num = 0
-    LOG.info('{} mons in db'.foramt(len(mon_db)))    
+    LOG.info('{} mons in db'.format(len(mon_db)))    
     for mon in mon_db:
         if mon.pokemon_id == 0:
             unknoun_mon_num += 1
@@ -416,7 +422,7 @@ def reloadPokemonImagesDB():
         mon_db = [ mon for mon in database.get_pokemon_images(session)]
 
 
-async def processRaidImage(raidfilename):
+def processRaidImage(raidfilename):
     filename = os.path.basename(raidfilename)
     LOG.info('process {}'.format(filename))
     img_full = cv2.imread(str(raidfilename),3)
@@ -435,7 +441,7 @@ async def processRaidImage(raidfilename):
     scale = width/320
 
     x1 = [0, int(319*scale)]
-    y1 = [int(406*scale), int(450*scale)]    
+    y1 = [int(406*scale), int(458*scale)]    
     time_img = img_full[y1[0]:y1[1], x1[0]:x1[1]]    
     #cv2.rectangle(img_egg,(x1[0],y1[0]),(x1[1],y1[1]),(0,255,0),1)
 
@@ -458,6 +464,9 @@ async def processRaidImage(raidfilename):
     if int(gym) > 0 and int(gym) != int(not_a_fort_id) and int(gym) != int(unknown_fort_id):
         if egg == True:
             hatch_time = getHatchTime(time_text)
+            if hatch_time == -1:
+                LOG.error('time detection failed : {}'.format(time_text))
+                return False
             spawn_time = hatch_time - 3600
             end_time = hatch_time + 2700
             time_battle = database.get_raid_battle_time(session, gym)
@@ -510,7 +519,7 @@ async def processRaidImage(raidfilename):
         LOG.info('Raid image is not valid')
     elif int(gym) == unknown_fort_id and egg == True:
         # Send Image to Training Directory
-        LOG.info('Gym image params are in database but the Gym is not known')
+        LOG.info('Gym image params are in database but the Gym is not known. Fort_id:'.format(gym))
         unknown_gym_name = 'GymImage_'+str(gym_image_id)+'.png'
         fullpath_dest = str(copy_path) + str(unknown_gym_name)
         LOG.info(fullpath_dest)
@@ -534,12 +543,15 @@ async def processRaidImage(raidfilename):
 async def main():
     while True:
         for fullpath_filename in p.glob('*.png'):
-            await processRaidImage(fullpath_filename)
+            processRaidImage(fullpath_filename)
         await asyncio.sleep(3) 
     session.close()
 
 if __name__ == '__main__':
-    main()
+    filename = 'test_file.png'
+    raidfilename = os.getcwd() + '/not_find_img/' + filename
+    processRaidImage(raidfilename)
+    
 #    main()
 
 
