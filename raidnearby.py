@@ -546,6 +546,7 @@ class RaidNearby:
         LOG.debug('Not a fort id: {}'.format(self.not_a_fort_id))
         while True:
             for fullpath_filename in self.p.glob('*.png'):
+                LOG.debug('process {}'.format(fullpath_filename))
                 processRaidImage(fullpath_filename)
                 await asyncio.sleep(0.1)
             await asyncio.sleep(3) 
