@@ -134,7 +134,7 @@ class FindFort:
             new_img_count = 0
             for fort_fullpath_filename in p.glob('GymImage*.png'):
                 new_img_count = new_img_count+1
-                await run_fortmatching(session, fort_fullpath_filename)
+                await self.run_fortmatching(session, fort_fullpath_filename)
             if new_img_count != 0:
                 LOG.info('{} new fort image processed'.format(new_img_count))
             else:

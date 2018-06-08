@@ -430,7 +430,7 @@ class RaidNearby:
         file_update_time = int(os.stat(str(raidfilename)).st_mtime)
         LOG.debug('Image was created {} seconds ago'.format(str(unix_time-file_update_time)))
 
-        if isRaidSighting(img_full) == False:
+        if self.isRaidSighting(img_full) == False:
             os.remove(raidfilename)
             return False
 
@@ -451,10 +451,10 @@ class RaidNearby:
         level_img = img_full[y2[0]:y2[1], x2[0]:x2[1]]    
         #cv2.rectangle(img_egg,(x2[0],y2[0]),(x2[1],y2[1]),(0,255,0),1)    
 
-        time_text = detectTime(time_img)
-        level = detectLevel(level_img)
-        gym_image_id, gym, error_gym = detectGym(img_full)
-        egg = detectEgg(time_text)
+        time_text = self.detectTime(time_img)
+        level = self.detectLevel(level_img)
+        gym_image_id, gym, error_gym = self.detectGym(img_full)
+        egg = self.detectEgg(time_text)
 
         update_raid = True    
         # old file
@@ -463,7 +463,7 @@ class RaidNearby:
             update_raid = False
         if int(gym) > 0 and int(gym) != int(self.not_a_fort_id) and int(gym) != int(self.unknown_fort_id):
             if egg == True:
-                hatch_time = getHatchTime(time_text)
+                hatch_time = self.getHatchTime(time_text)
                 if hatch_time == -1:
                     LOG.error('time detection failed : {}'.format(time_text))
                     return False
@@ -484,7 +484,7 @@ class RaidNearby:
                 else:
                     LOG.info('Skip update raid due to old file')
             else:
-                mon_image_id, mon, error_mon = detectMon(img_full)
+                mon_image_id, mon, error_mon = self.detectMon(img_full)
                 pokemon_id = database.get_raid_pokemon_id(self.session, gym)
                 LOG.info('Pokemon: level={} time_text={} gym={} error_gym={} mon={} error_mon={}'.format(level, time_text, gym, error_gym, mon, error_mon))
                 LOG.info('mon:{} pokemon_id:{}'.format(mon,pokemon_id))
@@ -545,11 +545,12 @@ class RaidNearby:
     async def main(self):
         LOG.debug('Unknown fort id: {}'.format(self.unknown_fort_id))
         LOG.debug('Not a fort id: {}'.format(self.not_a_fort_id))
+        
         while True:
             for fullpath_filename in self.p.glob('*.png'):
                 LOG.debug('process {}'.format(fullpath_filename))
                 import pdb; pdb.set_trace()
-                processRaidImage(fullpath_filename)
+                self.processRaidImage(fullpath_filename)
                 await asyncio.sleep(0.1)
             await asyncio.sleep(3) 
         self.session.close()
