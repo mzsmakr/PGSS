@@ -15,10 +15,18 @@ import database
 import asyncio
 import re
 
+logpath = os.getcwd()+'/logs/'
+log_path = os.path.dirname(logpath)
+if not os.path.exists(log_path):
+    print('log directory created')
+    os.makedirs(log_path)
+
 log_fmt='%(asctime)s [%(filename)-12.12s] [%(levelname)-5.5s]  %(message)s'
 logFormatter = Formatter(log_fmt)
-logpath = os.getcwd()+'/raidscan.log'
-basicConfig(filename=logpath, format=log_fmt, level=DEBUG)
+nowtime = datetime.datetime.now()
+nowtimestr = '{0:%Y-%m-%d_%H-%M-%S}'.format(nowtime)
+logfile = logpath+nowtimestr+'_raidscan.log'
+basicConfig(filename=logfile, format=log_fmt, level=DEBUG)
 
 LOG = getLogger('')
 console=StreamHandler();
@@ -27,7 +35,7 @@ console.setFormatter(logFormatter)
 LOG.addHandler(console)
 
 rfh = handlers.RotatingFileHandler(
-    filename=logpath,
+    filename=logfile,
     maxBytes=16384,
     backupCount=3
 )
