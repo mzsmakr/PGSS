@@ -21,7 +21,7 @@ async def crop_task():
             filename = os.path.basename(fullpath_filename)
             filename, ext = os.path.splitext(filename)
             img = cv2.imread(str(fullpath_filename),3)
-            
+
             if img is not None:
                 height, width, channels = img.shape
 
@@ -29,21 +29,27 @@ async def crop_task():
 
                 for size in RAID_NEARBY_SIZE:
                     if width == size['width'] and height == size['height']:
-                        LOG.info('screenshot with {}x{} found'.format(width, height))
-                        crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
-                        crop2 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
-                        crop3 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
-                        crop4 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
-                        crop5 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
-                        crop6 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
-                        cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
-                        cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
-                        cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
-                        cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
-                        cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
-                        cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
-                        os.remove(fullpath_filename)
-                        find_size_config = True
+
+                        if (img[size['comp_y']][size['comp_x']] == [162, 196, 250]).all():
+                            LOG.info('screenshot with {}x{} found and raid'.format(width, height))
+                            crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
+                            crop2 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
+                            crop3 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
+                            crop4 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
+                            crop5 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
+                            crop6 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
+                            cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
+                            cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
+                            cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
+                            cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
+                            cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
+                            cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
+
+                        else:
+                            LOG.info('screenshot with {}x{} found without raid'.format(width, height))
+                            find_size_config = True
+                            os.remove(fullpath_filename)
+                        break
                 if find_size_config == False:
                     shutil.move(fullpath_filename, not_find_path+'Screen_' + str(width) + 'x' + str(height) + '.png')
                     LOG.info('No size matching config found in RAID_NEARBY_SIZE')

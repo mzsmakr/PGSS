@@ -401,9 +401,9 @@ class RaidNearby:
                     return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
             # Europe format
             else:
-                data.replace('~','')
-                data.replace('-','')
-                data.replace(' ','')
+                data = data.replace('~','')
+                data = data.replace('-','')
+                data = data.replace(' ','')
                 hour_min = data.split(':')
                 return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
         else:
