@@ -47,7 +47,7 @@ for fullpath_filename in p.glob('*.png'):
         if fort_id.isdecimal()==True:
             print('fort_id:', fort_id)
             img = cv2.imread(str(fullpath_filename),3)
-            gym_image_id = rs.get_gym_image_id(img)
+            gym_image_id = rs.RaidNearby().get_gym_image_id(img)
             gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
             if int(fort_id) == int(gym_image_fort_id):
                 print('This gym image is already trained')
@@ -69,7 +69,7 @@ for fullpath_filename in p.glob('*.png'):
                     print('and run submit.py again')
         elif str(fort_id) == 'Not':
             img = cv2.imread(str(fullpath_filename),3)
-            gym_image_id = rs.get_gym_image_id(img)
+            gym_image_id = rs.RaidNearby().get_gym_image_id(img)
             not_fort_id = db.get_not_a_fort_id(session)
             if db.update_gym_image(session,gym_image_id,not_fort_id) == True:
                 fort_dest_file = not_valid_img_path + 'not_valid_' + str(gym_image_id) + '.png'
@@ -81,7 +81,7 @@ for fullpath_filename in p.glob('*.png'):
         if pokemon_id.isdecimal()==True:
             print('pokemon_id:', pokemon_id)
             img = cv2.imread(str(fullpath_filename),3)
-            pokemon_image_id = rs.get_pokemon_image_id(img)
+            pokemon_image_id = rs.RaidNearby().get_pokemon_image_id(img)
             pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
             if int(pokemon_id) == int(pokemon_image_pokemon_id):
                 print('This pokemon image is already trained')
