@@ -7,6 +7,8 @@ from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, I
 from config import SCREENSHOT_SAVE_PATH, RAID_NEARBY_SIZE
 import asyncio
 import shutil
+import math
+#import pdb; pdb.set_trace()
 
 LOG = getLogger('')
 
@@ -24,13 +26,20 @@ async def crop_task():
 
             if img is not None:
                 height, width, channels = img.shape
-
                 find_size_config = False
-
                 for size in RAID_NEARBY_SIZE:
                     if width == size['width'] and height == size['height']:
-
-                        if (img[size['comp_y']][size['comp_x']] == [162, 196, 250]).all():
+                        find_size_config = True
+                        refB = 162
+                        refG = 194
+                        refR = 252
+                        dif1 = pow(img[size['comp_y']][size['comp_x']][0] - refB,2)
+                        dif2 = pow(img[size['comp_y']][size['comp_x']][1] - refG,2)
+                        dif3 = pow(img[size['comp_y']][size['comp_x']][2] - refR,2)
+                        error = math.sqrt(dif1+dif2+dif3)
+                        LOG.debug('comp error:{} B:{}({}) G:{}({}) R:{}({})'.format(error, img[size['comp_y']][size['comp_x']][0], refB, img[size['comp_y']][size['comp_x']][1], refG, img[size['comp_y']][size['comp_x']][2],refR))               
+#                        if (img[size['comp_y']][size['comp_x']] == [162, 193, 254]).all():
+                        if error <= 10:
                             LOG.info('screenshot with {}x{} found and raid'.format(width, height))
                             crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
                             crop2 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
@@ -44,11 +53,9 @@ async def crop_task():
                             cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
                             cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
                             cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
-
                         else:
                             LOG.info('screenshot with {}x{} found without raid'.format(width, height))
-                            find_size_config = True
-                            os.remove(fullpath_filename)
+                        os.remove(fullpath_filename)
                         break
                 if find_size_config == False:
                     shutil.move(fullpath_filename, not_find_path+'Screen_' + str(width) + 'x' + str(height) + '.png')

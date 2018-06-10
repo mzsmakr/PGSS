@@ -88,6 +88,7 @@ def fort_image_matching_imshow(url_img_name, fort_img_name):
     cv2.rectangle(fort_img,(int(74*scale_fort),int(74*scale_fort)), (int(144*scale_fort), int(246*scale_fort)), (0, 0, 255), 2)
 
     cv2.imshow('matching result', url_img)
+    cv2.imshow('fort image', fort_img)
     cv2.imshow('crop', crop)
     cv2.waitKey(0)
 
@@ -101,6 +102,8 @@ if __name__ == '__main__':
     fort_id = 1
     url_img_path = os.getcwd() + '/success_img/Fort_' + str(fort_id) + '_url.jpg'
     fort_img_path = os.getcwd() + '/success_img/Fort_' + str(fort_id) + '.png'
+    url_img_path = '454.jpg'
+    fort_img_path = 'GymImage_1.png'
     print(url_img_path)
     print(fort_img_path)
     print(fort_image_matching_imshow(url_img_path,fort_img_path))
