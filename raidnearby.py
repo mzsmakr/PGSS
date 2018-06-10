@@ -74,7 +74,7 @@ class RaidNearby:
 
         self.session = database.Session()
 
-        self.gym_db = [gym for gym in database.get_gym_images(self.session)]
+        self.gym_db = database.get_gym_images(self.session)
         LOG.info('{} gym images loaded'.format(len(self.gym_db)))
         #for gym in self.gym_db:
         #    LOG.debug('%d %d %d %d %d %d %d %d', gym.id, gym.fort_id, gym.param_1, gym.param_2, gym.param_3, gym.param_4, gym.param_5, gym.param_6)
@@ -169,7 +169,7 @@ class RaidNearby:
                 unknown_gym_num = unknown_gym_num + 1
                 
         if unknown_gym_num != 0:
-            self.gym_db = [ gym for gym in database.get_gym_images(self.session)]
+            self.gym_db = database.get_gym_images(self.session)
             LOG.info('{} Unknown gym in DB'.format(unknown_gym_num))
             LOG.info('GymImage reloaded : {}'.format(len(self.gym_db)))
 
@@ -180,11 +180,11 @@ class RaidNearby:
             database.add_gym_image(self.session,self.unknown_fort_id,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
             gym_image_id = database.get_gym_image_id(self.session,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
             # Reload gym_images
-            self.gym_db = [ gym for gym in database.get_gym_images(self.session)]
+            self.gym_db = database.get_gym_images(self.session)
     #        for gym in self.gym_db:
     #            LOG.debug('{} {} {} {} {} {} {} {}'.format(gym.id, gym.fort_id, gym.param_1, gym.param_2, gym.param_3, gym.param_4, gym.param_5, gym.param_6))
             LOG.info('GymImage reloaded : {}'.format(len(self.gym_db)))
-            
+
         return gym_image_id, gym_id, min_error
 
     def get_gym_image_id(self, raid_img):
@@ -303,7 +303,7 @@ class RaidNearby:
                 unknown_mon_num = unknown_mon_num + 1
 
         if unknown_mon_num != 0:
-            self.mon_db = [ mon for mon in database.get_pokemon_images(self.session)]
+            self.mon_db = database.get_pokemon_images(self.session)
             LOG.info('{} Unknown pokemon in DB'.format(unknown_mon_num))
             LOG.info('PokemonImages table reloaded : {}'.format(len(self.mon_db)))          
 
@@ -312,7 +312,7 @@ class RaidNearby:
             database.add_pokemon_image(self.session,0,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
             mon_image_id = database.get_pokemon_image_id(self.session,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
             # Reload pokemon_images
-            self.mon_db = [ mon for mon in database.get_pokemon_images(self.session)]
+            self.mon_db = database.get_pokemon_images(self.session)
 
         return mon_image_id, mon_id, min_error
 
@@ -425,7 +425,7 @@ class RaidNearby:
                 unknoun_mon_num += 1
         LOG.info('{} unknown mon in db'.foramt(unknoun_mon_num))
         if unknoun_mon_num != 0:    
-            self.mon_db = [ mon for mon in database.get_pokemon_images(self.session)]
+            self.mon_db = database.get_pokemon_images(self.session)
 
 
     def processRaidImage(self, raidfilename):
