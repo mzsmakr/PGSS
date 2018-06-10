@@ -14,6 +14,7 @@ def exception_handler(loop, context):
     loop.default_exception_handler(context)
     exception = context.get('exception')
     if isinstance(exception, Exception):
+        LOG.error("Found unhandeled exception. Stoping...")
         loop.stop()
 
 if __name__ == '__main__':
