@@ -542,10 +542,10 @@ class RaidNearby:
             shutil.copy2(raidfilename,fullpath_dest)
         elif int(gym) == -1 and egg == False:
             LOG.info('Unknown gym with Raid Boss. Need egg with this Gym to identify')
-            unknown_gym_name = 'GymImage_'+str(gym_image_id)+'.png'
-            fullpath_dest = str(self.not_find_path) + str(unknown_gym_name)
-            LOG.info(fullpath_dest)
-            shutil.copy2(raidfilename,fullpath_dest) 
+#            unknown_gym_name = 'GymImage_'+str(gym_image_id)+'.png'
+#            fullpath_dest = str(self.not_find_path) + str(unknown_gym_name)
+#            LOG.info(fullpath_dest)
+#            shutil.copy2(raidfilename,fullpath_dest) 
 
         os.remove(raidfilename)
 

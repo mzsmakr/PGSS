@@ -61,6 +61,7 @@ async def crop_task():
                     shutil.move(fullpath_filename, not_find_path+'Screen_' + str(width) + 'x' + str(height) + '.png')
                     LOG.info('No size matching config found in RAID_NEARBY_SIZE')
                     LOG.info('Check not_find_img directory and add RAID_NEARBY_SIZE in config for the screenshot iamge')
+                await asyncio.sleep(0.1) 
         await asyncio.sleep(3) # task runs every 3 seconds
 
 
