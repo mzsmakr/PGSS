@@ -13,7 +13,7 @@ LOG = getLogger('')
 def exception_handler(loop, context):
     loop.default_exception_handler(context)
     exception = context.get('exception')
-    if isinstance(exception, ZeroDivisionError):
+    if isinstance(exception, Exception):
         LOG.error("Found unhandeled exception. Stoping loops. Error:")
         LOG.error(context)
         loop.stop()
