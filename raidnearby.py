@@ -488,6 +488,7 @@ class RaidNearby:
                             LOG.info('New Egg is added.')
                         except:
                             LOG.error('Error to update raid egg for fort:{}'.format(gym))
+                            self.session.rollback()
                 else:
                     LOG.info('Skip update raid due to old file')
             else:
@@ -506,6 +507,7 @@ class RaidNearby:
                                 LOG.info('New raid boss is added.')
                             except:
                                 LOG.error('Error to update raid boss for fort:{}'.format(gym))
+                                self.session.rollback()
                         else:
                             LOG.info('Skip update raid due to old file')
                     elif int(mon) == 0:
