@@ -410,7 +410,7 @@ class RaidNearby:
             LOG.info('{} Unknown gym in DB'.format(unknown_gym_num))
             LOG.info('GymImage reloaded : {}'.format(len(self.gym_db)))        
                                  
-        unknoun_mon_num = 0 
+        unknown_mon_num = 0 
         for mon in self.mon_db:
             if int(mon.pokemon_id) == 0:
                 unknown_mon_num = unknown_mon_num + 1        
