@@ -422,6 +422,7 @@ class RaidNearby:
     async def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
+        filename_no_ext, ext = os.path.splitext(url_filename) 
 
         now = datetime.datetime.now()
         unix_time = int(now.timestamp())
@@ -464,6 +465,10 @@ class RaidNearby:
                 hatch_time = self.getHatchTime(time_text)
                 if hatch_time == -1:
                     LOG.error('time detection failed : {}'.format(time_text))
+                    fullpath_dest = str(self.not_find_path) + str(filename)
+                    shutil.move(raidfilename,fullpath_dest)
+                    faild_time_name = str(self.not_find_path) + str(filename_no_ext)+'_time.png'
+                    shutil.copy2(self.timefile,faild_time_name)
                     return False
                 spawn_time = hatch_time - 3600
                 end_time = hatch_time + 2700
