@@ -1,5 +1,5 @@
 # PGSS ( Pokemon Go Screenshot Scanner) 
-PGSS scans raid near by images and identifies Gym,Raid Egg/Boss and time and then updates monocle hydro database. PGSS also works as backend for RealDeviceRaidMap(<https://github.com/123FLO321/RealDeviceRaidMap/>). Most of gym images are identified automatically.
+PGSS scans raid near by images and identifies Gym,Raid Egg/Boss and time and then updates monocle hydro database. PGSS also works as backend for RealDeviceRaidMap (<https://github.com/123FLO321/RealDeviceRaidMap/>). Most of gym images are identified automatically.
 
 ## Features
 1. Read raid near by sighting images and identify
@@ -79,3 +79,70 @@ Discord bot to download user submitted raid nearby in your discord server. It sa
 13. `PokemonImage_xxx.png` files are stored in `unknown_img` directory. Rename the file to `Pokemon_PokemonId.png`(e.g. `Pokemon_380.png` for Latias) and run `python3.6 manualsubmit.py`. This will train pokemon raid boss. Usually only one time training should be enough.
 14. If screenshot image size is not in config.py save the iamge to `not_find_img` as `Image_aaaxbbb.png` and you have to configure `RAID_NEARBY_SIZE`.
 
+## Database Tables
+When you run `raidscan.py`, `gym_images` and `pokemon_images` tables are automatically created if these tables are not in your database. If for some reason(error), these tables are not created, then you can create manually these tables as follow.
+
+### Postgresql
+#### gym_images
+```
+CREATE TABLE gym_images (
+    id SERIAL NOT NULL, 
+    fort_id INTEGER, 
+    param_1 INTEGER, 
+    param_2 INTEGER, 
+    param_3 INTEGER, 
+    param_4 INTEGER, 
+    param_5 INTEGER, 
+    param_6 INTEGER, 
+    created INTEGER, 
+    PRIMARY KEY (id)
+);
+```
+#### pokemon_images
+```
+CREATE TABLE pokemon_images (
+    id SERIAL NOT NULL, 
+    pokemon_id INTEGER, 
+    param_1 INTEGER, 
+    param_2 INTEGER, 
+    param_3 INTEGER, 
+    param_4 INTEGER, 
+    param_5 INTEGER, 
+    param_6 INTEGER, 
+    param_7 INTEGER, 
+    created INTEGER, 
+    PRIMARY KEY (id)
+);
+```
+### MySQL
+#### gym_images
+```
+CREATE TABLE gym_images (
+    id INTEGER NOT NULL AUTO_INCREMENT, 
+    fort_id INTEGER, 
+    param_1 INTEGER, 
+    param_2 INTEGER, 
+    param_3 INTEGER, 
+    param_4 INTEGER, 
+    param_5 INTEGER, 
+    param_6 INTEGER, 
+    created INTEGER, 
+    PRIMARY KEY (id)
+);
+```
+### pokemon_images
+```
+CREATE TABLE pokemon_images (
+    id INTEGER NOT NULL AUTO_INCREMENT, 
+    pokemon_id INTEGER, 
+    param_1 INTEGER, 
+    param_2 INTEGER, 
+    param_3 INTEGER, 
+    param_4 INTEGER, 
+    param_5 INTEGER, 
+    param_6 INTEGER, 
+    param_7 INTEGER, 
+    created INTEGER, 
+    PRIMARY KEY (id)
+)
+```
