@@ -149,8 +149,6 @@ class RaidNearby:
         LOG.info('Gyms in gym_images: {}'.format(len(self.gym_db)))
         LOG.debug('top_mean0:{} top_mean1:{} top_mean2:{} left_mean0:{} left_mean1:{} left_mean2:{} '.format(top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2))
 
-        unknown_gym_num = 0
-
         for gym in self.gym_db:
             dif1 = pow(top_mean0 - gym.param_1,2)
             dif2 = pow(top_mean1 - gym.param_2,2)
@@ -165,13 +163,6 @@ class RaidNearby:
                 min_error = error
                 gym_id = gym.fort_id
                 gym_image_id = gym.id
-            if int(gym.fort_id) == int(self.unknown_fort_id):
-                unknown_gym_num = unknown_gym_num + 1
-                
-        if unknown_gym_num != 0:
-            self.gym_db = database.get_gym_images(self.session)
-            LOG.info('{} Unknown gym in DB'.format(unknown_gym_num))
-            LOG.info('GymImage reloaded : {}'.format(len(self.gym_db)))
 
         if min_error > 10:
             LOG.info('gym_id:{} min_error:{}'.format(gym_id, min_error))
@@ -282,8 +273,6 @@ class RaidNearby:
         mon_id = 0
         mon_image_id = 0
 
-        unknown_mon_num = 0
-        
         # get error from all gyms
         for mon in self.mon_db:
             dif1 = pow(mean1 - mon.param_1,2)
@@ -299,13 +288,6 @@ class RaidNearby:
                 min_error = error
                 mon_id = mon.pokemon_id
                 mon_image_id = mon.id
-            if int(mon.pokemon_id) == 0:
-                unknown_mon_num = unknown_mon_num + 1
-
-        if unknown_mon_num != 0:
-            self.mon_db = database.get_pokemon_images(self.session)
-            LOG.info('{} Unknown pokemon in DB'.format(unknown_mon_num))
-            LOG.info('PokemonImages table reloaded : {}'.format(len(self.mon_db)))          
 
         if min_error > 5:
             mon_id = -1
@@ -417,18 +399,27 @@ class RaidNearby:
             ret = False
         return ret
 
-    def reloadPokemonImagesDB(self):
-        unknoun_mon_num = 0
-        LOG.info('{} mons in db'.format(len(self.mon_db)))    
+    async def reloadImagesDB(self):
+        unknown_gym_num = 0
+        for gym in self.gym_db:
+            if int(gym.fort_id) == int(self.unknown_fort_id):
+                unknown_gym_num = unknown_gym_num + 1
+        if unknown_gym_num != 0:
+            self.gym_db = database.get_gym_images(self.session)
+            LOG.info('{} Unknown gym in DB'.format(unknown_gym_num))
+            LOG.info('GymImage reloaded : {}'.format(len(self.gym_db)))        
+                                 
+        unknown_mon_num = 0 
         for mon in self.mon_db:
-            if mon.pokemon_id == 0:
-                unknoun_mon_num += 1
-        LOG.info('{} unknown mon in db'.foramt(unknoun_mon_num))
-        if unknoun_mon_num != 0:    
+            if int(mon.pokemon_id) == 0:
+                unknown_mon_num = unknown_mon_num + 1        
+
+        if unknown_mon_num != 0:
             self.mon_db = database.get_pokemon_images(self.session)
+            LOG.info('{} Unknown pokemon in DB'.format(unknown_mon_num))
+            LOG.info('PokemonImages table reloaded : {}'.format(len(self.mon_db)))          
 
-
-    def processRaidImage(self, raidfilename):
+    async def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
 
@@ -560,9 +551,10 @@ class RaidNearby:
         LOG.debug('Not a fort id: {}'.format(self.not_a_fort_id))
         
         while True:
+            await self.reloadImagesDB()
             for fullpath_filename in self.p.glob('*.png'):
                 LOG.debug('process {}'.format(fullpath_filename))
-                self.processRaidImage(fullpath_filename)
+                await self.processRaidImage(fullpath_filename)
                 await asyncio.sleep(0.1)
             await asyncio.sleep(3) 
         self.session.close()
