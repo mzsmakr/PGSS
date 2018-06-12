@@ -98,9 +98,7 @@ class RaidNearby:
 
     # Detect hatch time from time image
     def detectTime(self, time_img):
-        img_gray = cv2.cvtColor(time_img,cv2.COLOR_BGR2GRAY)
-        ret,thresh1 = cv2.threshold(img_gray,240,255,cv2.THRESH_BINARY_INV)
-        cv2.imwrite(self.timefile, thresh1)
+        cv2.imwrite(self.timefile, time_img)
         text = pytesseract.image_to_string(Image.open(self.timefile))
     #    os.remove(self.timefile)
     #    cv2.imshow('time', thresh1)
