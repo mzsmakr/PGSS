@@ -422,7 +422,7 @@ class RaidNearby:
     async def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
-        filename_no_ext, ext = os.path.splitext(url_filename) 
+        filename_no_ext, ext = os.path.splitext(filename) 
 
         now = datetime.datetime.now()
         unix_time = int(now.timestamp())
