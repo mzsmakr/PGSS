@@ -552,6 +552,7 @@ class RaidNearby:
         
         while True:
             await self.reloadImagesDB()
+            
             for fullpath_filename in self.p.glob('*.png'):
                 LOG.debug('process {}'.format(fullpath_filename))
                 await self.processRaidImage(fullpath_filename)
