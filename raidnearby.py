@@ -419,7 +419,7 @@ class RaidNearby:
             LOG.info('{} Unknown pokemon in DB'.format(unknown_mon_num))
             LOG.info('PokemonImages table reloaded : {}'.format(len(self.mon_db)))          
 
-    def processRaidImage(self, raidfilename):
+    async def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
 
@@ -554,7 +554,7 @@ class RaidNearby:
             await self.reloadImagesDB()
             for fullpath_filename in self.p.glob('*.png'):
                 LOG.debug('process {}'.format(fullpath_filename))
-                self.processRaidImage(fullpath_filename)
+                await self.processRaidImage(fullpath_filename)
                 await asyncio.sleep(0.1)
             await asyncio.sleep(3) 
         self.session.close()
