@@ -400,7 +400,6 @@ class RaidNearby:
         return ret
 
     def reloadImagesDB(self):
-        import pdb; pdb.set_trace()
         unknown_gym_num = 0
         for gym in self.gym_db:
             if int(gym.fort_id) == int(self.unknown_fort_id):
@@ -552,7 +551,7 @@ class RaidNearby:
         LOG.debug('Not a fort id: {}'.format(self.not_a_fort_id))
         
         while True:
-            self.reloadImagesDB()
+#            self.reloadImagesDB()
             for fullpath_filename in self.p.glob('*.png'):
                 LOG.debug('process {}'.format(fullpath_filename))
                 self.processRaidImage(fullpath_filename)
