@@ -400,6 +400,7 @@ class RaidNearby:
         return ret
 
     def reloadImagesDB(self):
+        import pdb; pdb.set_trace()
         unknown_gym_num = 0
         for gym in self.gym_db:
             if int(gym.fort_id) == int(self.unknown_fort_id):
