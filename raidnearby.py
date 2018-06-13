@@ -98,9 +98,7 @@ class RaidNearby:
 
     # Detect hatch time from time image
     def detectTime(self, time_img):
-        img_gray = cv2.cvtColor(time_img,cv2.COLOR_BGR2GRAY)
-        ret,thresh1 = cv2.threshold(img_gray,240,255,cv2.THRESH_BINARY_INV)
-        cv2.imwrite(self.timefile, thresh1)
+        cv2.imwrite(self.timefile, time_img)
         text = pytesseract.image_to_string(Image.open(self.timefile))
     #    os.remove(self.timefile)
     #    cv2.imshow('time', thresh1)
@@ -422,6 +420,7 @@ class RaidNearby:
     async def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
+        filename_no_ext, ext = os.path.splitext(filename) 
 
         now = datetime.datetime.now()
         unix_time = int(now.timestamp())
@@ -464,6 +463,10 @@ class RaidNearby:
                 hatch_time = self.getHatchTime(time_text)
                 if hatch_time == -1:
                     LOG.error('time detection failed : {}'.format(time_text))
+                    fullpath_dest = str(self.not_find_path) + str(filename)
+                    shutil.move(raidfilename,fullpath_dest)
+                    faild_time_name = str(self.not_find_path) + str(filename_no_ext)+'_time.png'
+                    shutil.copy2(self.timefile,faild_time_name)
                     return False
                 spawn_time = hatch_time - 3600
                 end_time = hatch_time + 2700
