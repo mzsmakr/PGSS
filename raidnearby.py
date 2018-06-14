@@ -50,6 +50,7 @@ class RaidNearby:
         self.process_img_path = os.getcwd() + '/process_img/'
         self.copy_path = os.getcwd() + '/unknown_img/'
         self.not_find_path = os.getcwd() + '/not_find_img/'
+        self.success_img_path = os.getcwd() + '/success_img/'
 
         # Create directories if not exists
         file_path = os.path.dirname(self.process_img_path)
@@ -62,10 +63,16 @@ class RaidNearby:
             LOG.info('unknown_img directory created')
             os.makedirs(file_path)
 
+        file_path = os.path.dirname(self.success_img_path)
+        if not os.path.exists(file_path):
+            LOG.info('success_img_path directory created')
+            os.makedirs(file_path)
+
         file_path = os.path.dirname(self.not_find_path)
         if not os.path.exists(file_path):
             LOG.info('not_find_img directory created')
             os.makedirs(file_path)
+
 
         self.p = Path(self.process_img_path)
 
@@ -485,6 +492,8 @@ class RaidNearby:
                             self.session.rollback()
                 else:
                     LOG.info('Skip update raid due to old file')
+                processed_egg_name = 'Fort_'+str(gym)+'GymImagesId_'+ str(gym_image_id)+'_egg.png'
+                processed_file_dest = str(self.success_img_path) + str(processed_egg_name)
             else:
                 mon_image_id, mon, error_mon = self.detectMon(img_full)
                 pokemon_id = database.get_raid_pokemon_id(self.session, gym)
@@ -517,7 +526,9 @@ class RaidNearby:
                         fullpath_dest = str(self.not_find_path) + str(unknown_mon_name)
                         LOG.info(fullpath_dest)
                         shutil.copy2(raidfilename,fullpath_dest)
-                        
+                processed_pokemon_name = 'Fort_'+str(gym)+'GymImagesId_'+ str(gym_image_id) + 'Pokemon_' + str(mon) + '.png'
+                processed_file_dest = str(self.success_img_path) + str(processed_pokemon_name)      
+            shutil.copy2(raidfilename, processed_file_dest)                
         elif int(gym) == self.not_a_fort_id:
             LOG.info('Raid image is not valid')
         elif int(gym) == self.unknown_fort_id and egg == True:
