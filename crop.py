@@ -24,6 +24,9 @@ async def crop_task():
             filename, ext = os.path.splitext(filename)
             img = cv2.imread(str(fullpath_filename),3)
 
+            if img.dtype == 'uint16':
+                img = (img / 256).astype('uint8')
+
             if img is not None:
                 height, width, channels = img.shape
                 find_size_config = False
