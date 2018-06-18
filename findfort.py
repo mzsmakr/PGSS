@@ -155,7 +155,7 @@ def exception_handler(loop, context):
         loop.stop()
 
 if __name__ == '__main__':
-    find_fort = findfort.FindFort()
+    find_fort = FindFort()
     loop = asyncio.get_event_loop()
     loop.set_exception_handler(exception_handler)
     loop.create_task(find_fort.findfort_main())

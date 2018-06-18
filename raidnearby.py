@@ -608,7 +608,7 @@ class RaidNearby:
 
 
 if __name__ == '__main__':
-    raid_nearby = raidnearby.RaidNearby()
+    raid_nearby = RaidNearby()
     loop = asyncio.get_event_loop()
     loop.set_exception_handler(exception_handler)
     loop.create_task(raid_nearby.main())
