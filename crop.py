@@ -32,7 +32,7 @@ async def crop_img(fullpath_filename):
             if width == size['width'] and height == size['height']:
                 find_size_config = True
                 LOG.info('ext = {}'.format(ext))
-                if ext == 'jpg':
+                if ext == '.jpg':
                     refB = 150
                 else:
                     refB = 162                
@@ -63,7 +63,7 @@ async def crop_img(fullpath_filename):
 #                        os.remove(fullpath_filename)
                 break
         if find_size_config == False:
-            shutil.copy2(fullpath_filename, not_find_path+'Screen_' + str(width) + 'x' + str(height) + '.' + ext)
+            shutil.copy2(fullpath_filename, not_find_path+'Screen_' + str(width) + 'x' + str(height) + ext)
             LOG.info('No size matching config found in RAID_NEARBY_SIZE')
             LOG.info('Check not_find_img directory and add RAID_NEARBY_SIZE in config for the screenshot iamge')
         img = cv2.resize(img, None, fx = 0.35, fy = 0.35) 
