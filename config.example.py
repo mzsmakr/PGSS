@@ -20,5 +20,4 @@ RAID_NEARBY_SIZE = [  {'width':1536, 'height':2048 , 'crop_w':320, 'crop_h':525,
                       {'width':640,  'height':1136 , 'crop_w':133, 'crop_h':221, 'crop_x1':71,  'crop_x2':258, 'crop_x3':444,  'crop_y1':442, 'crop_y2':717,  'comp_x': 73,  'comp_y': 507},  # iPhone SE
                       {'width':1080, 'height':1920 , 'crop_w':270, 'crop_h':444, 'crop_x1':135, 'crop_x2':486, 'crop_x3':858,  'crop_y1':861, 'crop_y2':1386, 'comp_x': 150, 'comp_y': 1000}  # iPhone Plus
                       ]
-         
 
