@@ -31,6 +31,7 @@ async def crop_img(fullpath_filename):
         for size in RAID_NEARBY_SIZE:
             if width == size['width'] and height == size['height']:
                 find_size_config = True
+                LOG.info('ext = {}'.format(ext))
                 if ext == 'jpg':
                     refB = 150
                 else:
