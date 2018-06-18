@@ -8,6 +8,7 @@ from config import SCREENSHOT_SAVE_PATH, RAID_NEARBY_SIZE
 import asyncio
 import shutil
 import math
+import raidnearby
 #import pdb; pdb.set_trace()
 
 LOG = getLogger('')
