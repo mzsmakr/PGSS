@@ -516,8 +516,6 @@ class RaidNearby:
                             self.session.rollback()
                 else:
                     LOG.info('Skip update raid due to old file')
-                processed_egg_name = 'Fort_'+str(gym)+'_GymImagesId_'+ str(gym_image_id)+'_egg.png'
-                processed_file_dest = str(self.success_img_path) + str(processed_egg_name)
             else:
                 mon_image_id, mon, error_mon = self.detectMon(img_full)
                 pokemon_id = database.get_raid_pokemon_id(self.session, gym)
@@ -550,8 +548,10 @@ class RaidNearby:
                         fullpath_dest = str(self.not_find_path) + str(unknown_mon_name)
                         LOG.info(fullpath_dest)
                         shutil.copy2(raidfilename,fullpath_dest)
-                processed_pokemon_name = 'Fort_'+str(gym)+'_GymImagesId_'+ str(gym_image_id) + '_Pokemon_' + str(mon) + '.png'
-                processed_file_dest = str(self.success_img_path) + str(processed_pokemon_name)      
+                processed_pokemon_name = 'Pokemon_' + str(mon) + '_PokemonImages_' + str(mon_image_id) + '.png'
+                processed_file_dest = str(self.success_img_path) + str(processed_pokemon_name)
+            processed_gym_name = 'Fort_'+str(gym)+'_GymImages_'+ str(gym_image_id)+'.png'
+            processed_file_dest = str(self.success_img_path) + str(processed_gym_name)     
             shutil.copy2(raidfilename, processed_file_dest)                
         elif int(gym) == self.not_a_fort_id:
             LOG.info('Raid image is not valid')
