@@ -16,15 +16,17 @@ async def crop_task():
     screenshot_path = Path(SCREENSHOT_SAVE_PATH)
     crop_save_path = os.getcwd() + '/process_img/'
     not_find_path = os.getcwd() + '/not_find_img/'
+    web_server_path = os.getcwd()+'/webserver/'
     LOG.info('Crop screenshot task started')
     LOG.info('Screenshot path:{}'.format(screenshot_path))
     while True:
-        for fullpath_filename in screenshot_path.glob('*.png'):
+        for fullpath_filename in screenshot_path.glob('*.jpg'):
             filename = os.path.basename(fullpath_filename)
             filename, ext = os.path.splitext(filename)
             img = cv2.imread(str(fullpath_filename),3)
 
             if img.dtype == 'uint16':
+                print('16 bit image')
                 img = (img / 256).astype('uint8')
 
             if img is not None:
@@ -33,7 +35,7 @@ async def crop_task():
                 for size in RAID_NEARBY_SIZE:
                     if width == size['width'] and height == size['height']:
                         find_size_config = True
-                        refB = 162
+                        refB = 150 #162
                         refG = 194
                         refR = 252
                         dif1 = pow(img[size['comp_y']][size['comp_x']][0] - refB,2)
@@ -58,14 +60,20 @@ async def crop_task():
                             cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
                         else:
                             LOG.info('screenshot with {}x{} found without raid'.format(width, height))
-                        os.remove(fullpath_filename)
+#                        os.remove(fullpath_filename)
                         break
                 if find_size_config == False:
-                    shutil.move(fullpath_filename, not_find_path+'Screen_' + str(width) + 'x' + str(height) + '.png')
+                    shutil.copy2(fullpath_filename, not_find_path+'Screen_' + str(width) + 'x' + str(height) + '.png')
                     LOG.info('No size matching config found in RAID_NEARBY_SIZE')
                     LOG.info('Check not_find_img directory and add RAID_NEARBY_SIZE in config for the screenshot iamge')
+                img = cv2.resize(img, None, fx = 0.35, fy = 0.35) 
+                save_file_path = web_server_path+'screenshot.jpg'
+                cv2.imwrite(save_file_path, img)
+#                filename = os.path.basename(fullpath_filename)
+#                shutil.move(fullpath_filename, web_server_path+filename)
+                os.remove(fullpath_filename)
                 await asyncio.sleep(0.1) 
-        await asyncio.sleep(3) # task runs every 3 seconds
+        await asyncio.sleep(0.2) # task runs every 3 seconds
 
 
 
