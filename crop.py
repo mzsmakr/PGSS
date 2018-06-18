@@ -16,6 +16,24 @@ crop_save_path = os.getcwd() + '/process_img/'
 not_find_path = os.getcwd() + '/not_find_img/'
 web_server_path = os.getcwd()+'/webserver/'
 
+# Create directories if not exists
+file_path = os.path.dirname(crop_save_path)
+if not os.path.exists(file_path):
+    LOG.info('process_img directory created')
+    os.makedirs(file_path)
+
+# Create directories if not exists
+file_path = os.path.dirname(not_find_path)
+if not os.path.exists(file_path):
+    LOG.info('not_find_img directory created')
+    os.makedirs(file_path)
+
+# Create directories if not exists
+file_path = os.path.dirname(web_server_path)
+if not os.path.exists(file_path):
+    LOG.info('not_find_img directory created')
+    os.makedirs(web_server_path)  
+
 async def crop_img(fullpath_filename):
     filename = os.path.basename(fullpath_filename)
     filename, ext = os.path.splitext(filename)
