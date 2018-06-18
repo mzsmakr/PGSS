@@ -77,7 +77,7 @@ async def crop_task():
     LOG.info('Screenshot path:{}'.format(screenshot_path))
     while True:
         for fullpath_filename in screenshot_path.glob('*.jpg'):
-            await prcess_img(filename)
+            await crop_img(filename)
         await asyncio.sleep(0.2) # task runs every 3 seconds
 
 
