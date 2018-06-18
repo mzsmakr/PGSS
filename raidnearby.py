@@ -50,6 +50,7 @@ class RaidNearby:
         self.process_img_path = os.getcwd() + '/process_img/'
         self.copy_path = os.getcwd() + '/unknown_img/'
         self.not_find_path = os.getcwd() + '/not_find_img/'
+        self.success_img_path = os.getcwd() + '/success_img/'
 
         # Create directories if not exists
         file_path = os.path.dirname(self.process_img_path)
@@ -62,10 +63,16 @@ class RaidNearby:
             LOG.info('unknown_img directory created')
             os.makedirs(file_path)
 
+        file_path = os.path.dirname(self.success_img_path)
+        if not os.path.exists(file_path):
+            LOG.info('success_img_path directory created')
+            os.makedirs(file_path)
+
         file_path = os.path.dirname(self.not_find_path)
         if not os.path.exists(file_path):
             LOG.info('not_find_img directory created')
             os.makedirs(file_path)
+
 
         self.p = Path(self.process_img_path)
 
@@ -361,6 +368,18 @@ class RaidNearby:
         else:
             return True
 
+    def checkHourMin(self, hour_min):
+        hour_min[0] = hour_min[0].replace('O','0')
+        hour_min[0] = hour_min[0].replace('o','0')
+        hour_min[0] = hour_min[0].replace('A','4')
+        hour_min[1] = hour_min[1].replace('O','0')
+        hour_min[1] = hour_min[1].replace('o','0')
+        hour_min[1] = hour_min[1].replace('A','4')
+        if str(hour_min[0]).isdecimal()==True and str(hour_min[1]).isdecimal()==True:
+            return True, hour_min
+        else:
+            return False, hour_min
+
     def getHatchTime(self,data):
         zero = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0)
         unix_zero = zero.timestamp()
@@ -372,20 +391,32 @@ class RaidNearby:
             PM = data.find('PM')
             if AM >= 5:
                 hour_min = data[:AM-1].split(':')
-                return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
-            elif PM >= 5:
-                hour_min = data[:PM-1].split(':')
-                if hour_min[0] == '12':
+                ret, hour_min = self.checkHourMin(hour_min)
+                if ret == True:
                     return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
                 else:
-                    return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
+                    return -1
+            elif PM >= 5:
+                hour_min = data[:PM-1].split(':')
+                ret, hour_min = self.checkHourMin(hour_min)
+                if ret == True:
+                    if hour_min[0] == '12':
+                        return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                    else:
+                        return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
+                else:
+                    retur -1
             # Europe format
             else:
                 data = data.replace('~','')
                 data = data.replace('-','')
                 data = data.replace(' ','')
                 hour_min = data.split(':')
-                return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                ret, hour_min = self.checkHourMin(hour_min)
+                if ret == True:
+                    return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                else:
+                    return -1
         else:
             return -1
         
@@ -517,7 +548,11 @@ class RaidNearby:
                         fullpath_dest = str(self.not_find_path) + str(unknown_mon_name)
                         LOG.info(fullpath_dest)
                         shutil.copy2(raidfilename,fullpath_dest)
-                        
+                processed_pokemon_name = 'Pokemon_' + str(mon) + '_PokemonImages_' + str(mon_image_id) + '.png'
+                processed_file_dest = str(self.success_img_path) + str(processed_pokemon_name)
+            processed_gym_name = 'Fort_'+str(gym)+'_GymImages_'+ str(gym_image_id)+'.png'
+            processed_file_dest = str(self.success_img_path) + str(processed_gym_name)     
+            shutil.copy2(raidfilename, processed_file_dest)                
         elif int(gym) == self.not_a_fort_id:
             LOG.info('Raid image is not valid')
         elif int(gym) == self.unknown_fort_id and egg == True:
