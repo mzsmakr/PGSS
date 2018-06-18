@@ -111,7 +111,7 @@ def exception_handler(loop, context):
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.set_exception_handler(exception_handler)
-    loop.create_task(crop.crop_task())
+    loop.create_task(crop_task())
     loop.run_forever()
     loop.close()
 
