@@ -39,11 +39,11 @@ async def crop_img(fullpath_filename):
     filename, ext = os.path.splitext(filename)
     img = cv2.imread(str(fullpath_filename),3)
 
-    if img.dtype == 'uint16':
-        print('16 bit image')
-        img = (img / 256).astype('uint8')
-
     if img is not None:
+        if img.dtype == 'uint16':
+            print('16 bit image')
+            img = (img / 256).astype('uint8')
+            
         height, width, channels = img.shape
         find_size_config = False
         for size in RAID_NEARBY_SIZE:
