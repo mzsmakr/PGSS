@@ -45,6 +45,13 @@ LOG.addHandler(rfh)
 
 LOG.info('Pokemon Screenshot Raid Scan Started')
 
+def exception_handler(loop, context):
+    loop.default_exception_handler(context)
+    exception = context.get('exception')
+    if isinstance(exception, Exception):
+        LOG.error("Found unhandeled exception. Stoping...")
+        loop.stop()
+
 class RaidNearby:
     def __init__(self):
         self.process_img_path = os.getcwd() + '/process_img/'
@@ -598,12 +605,14 @@ class RaidNearby:
             await asyncio.sleep(3) 
         self.session.close()
 
+
+
 if __name__ == '__main__':
-    raidnearby = RaidNearby()
-    filename = 'test_file.png'
-    raidfilename = os.getcwd() + '/not_find_img/' + filename
-    raidnearby.processRaidImage(raidfilename)
-    
-#    main()
+    raid_nearby = raidnearby.RaidNearby()
+    loop = asyncio.get_event_loop()
+    loop.set_exception_handler(exception_handler)
+    loop.create_task(raid_nearby.main())
+    loop.run_forever()
+    loop.close()
 
 

@@ -67,5 +67,20 @@ async def crop_task():
                 await asyncio.sleep(0.1) 
         await asyncio.sleep(3) # task runs every 3 seconds
 
+def exception_handler(loop, context):
+    loop.default_exception_handler(context)
+    exception = context.get('exception')
+    if isinstance(exception, Exception):
+        LOG.error("Found unhandeled exception. Stoping...")
+        loop.stop()
+
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.set_exception_handler(exception_handler)
+    loop.create_task(crop.crop_task())
+    loop.run_forever()
+    loop.close()
+
+
 
 
