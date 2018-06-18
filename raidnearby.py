@@ -451,6 +451,10 @@ class RaidNearby:
     async def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
+        
+        if img_full is None:
+            return False
+        
         filename_no_ext, ext = os.path.splitext(filename) 
 
         now = datetime.datetime.now()
@@ -595,7 +599,7 @@ class RaidNearby:
                 LOG.debug('process {}'.format(fullpath_filename))
                 await self.processRaidImage(fullpath_filename)
                 await asyncio.sleep(0.1)
-            await asyncio.sleep(3) 
+            await asyncio.sleep(1) 
         self.session.close()
 
 if __name__ == '__main__':
