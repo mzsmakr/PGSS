@@ -31,7 +31,7 @@ async def crop_img(fullpath_filename):
         for size in RAID_NEARBY_SIZE:
             if width == size['width'] and height == size['height']:
                 find_size_config = True
-                LOG.info('ext = {}'.format(ext))
+                LOG.debug('ext = {}'.format(ext))
                 if ext == '.jpg':
                     refB = 150
                 else:
@@ -79,7 +79,9 @@ async def crop_task():
     while True:
         for fullpath_filename in screenshot_path.glob('*.jpg'):
             await crop_img(fullpath_filename)
-        await asyncio.sleep(0.2) # task runs every 3 seconds
+        for fullpath_filename in screenshot_path.glob('*.png'):
+            await crop_img(fullpath_filename)
+        await asyncio.sleep(0.2) # task runs every 0.2 seconds
 
 
 
