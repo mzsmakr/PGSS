@@ -16,7 +16,7 @@ crop_save_path = os.getcwd() + '/process_img/'
 not_find_path = os.getcwd() + '/not_find_img/'
 web_server_path = os.getcwd()+'/webserver/'
 
-async def crop_img(filename)
+async def crop_img(filename):
     filename = os.path.basename(fullpath_filename)
     filename, ext = os.path.splitext(filename)
     img = cv2.imread(str(fullpath_filename),3)
