@@ -368,6 +368,18 @@ class RaidNearby:
         else:
             return True
 
+    def checkHourMin(self, hour_min):
+        hour_min[0] = hour_min[0].replace('O','0')
+        hour_min[0] = hour_min[0].replace('o','0')
+        hour_min[0] = hour_min[0].replace('A','4')
+        hour_min[1] = hour_min[1].replace('O','0')
+        hour_min[1] = hour_min[1].replace('o','0')
+        hour_min[1] = hour_min[1].replace('A','4')
+        if str(hour_min[0]).isdecimal()==True and str(hour_min[1]).isdecimal()==True:
+            return True, hour_min
+        else:
+            return False, hour_min
+
     def getHatchTime(self,data):
         zero = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0)
         unix_zero = zero.timestamp()
@@ -379,20 +391,32 @@ class RaidNearby:
             PM = data.find('PM')
             if AM >= 5:
                 hour_min = data[:AM-1].split(':')
-                return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
-            elif PM >= 5:
-                hour_min = data[:PM-1].split(':')
-                if hour_min[0] == '12':
+                ret, hour_min = self.checkHourMin(hour_min)
+                if ret == True:
                     return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
                 else:
-                    return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
+                    return -1
+            elif PM >= 5:
+                hour_min = data[:PM-1].split(':')
+                ret, hour_min = self.checkHourMin(hour_min)
+                if ret == True:
+                    if hour_min[0] == '12':
+                        return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                    else:
+                        return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
+                else:
+                    retur -1
             # Europe format
             else:
                 data = data.replace('~','')
                 data = data.replace('-','')
                 data = data.replace(' ','')
                 hour_min = data.split(':')
-                return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                ret, hour_min = self.checkHourMin(hour_min)
+                if ret == True:
+                    return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                else:
+                    return -1
         else:
             return -1
         
