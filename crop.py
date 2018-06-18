@@ -16,7 +16,7 @@ crop_save_path = os.getcwd() + '/process_img/'
 not_find_path = os.getcwd() + '/not_find_img/'
 web_server_path = os.getcwd()+'/webserver/'
 
-async def crop_img(filename):
+async def crop_img(fullpath_filename):
     filename = os.path.basename(fullpath_filename)
     filename, ext = os.path.splitext(filename)
     img = cv2.imread(str(fullpath_filename),3)
@@ -77,7 +77,7 @@ async def crop_task():
     LOG.info('Screenshot path:{}'.format(screenshot_path))
     while True:
         for fullpath_filename in screenshot_path.glob('*.jpg'):
-            await crop_img(filename)
+            await crop_img(fullpath_filename)
         await asyncio.sleep(0.2) # task runs every 3 seconds
 
 
