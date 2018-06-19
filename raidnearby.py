@@ -91,6 +91,7 @@ class RaidNearby:
 
         self.unknown_fort_id = database.get_unknown_fort_id(self.session)
         self.not_a_fort_id = database.get_not_a_fort_id(self.session)
+        self.not_a_pokemon_id = -2
 
     # Detect level of raid from level image
     def detectLevel(self, level_img):
@@ -543,7 +544,9 @@ class RaidNearby:
                         fullpath_dest = str(self.not_find_path) + str(unknown_mon_name)
                         LOG.info(fullpath_dest)
                         shutil.copy2(raidfilename,fullpath_dest)
-                    else: # int(mon) < 0
+                    elif int(mon) == self.not_a_pokemon_id: # -2
+                        LOG.info('Pokemon image is not valid (most likly emply')
+                    else: # int(mon) == -1
                         # Send mon image for training directory
                         LOG.info('Mon is not in database')
                         unknown_mon_name = 'PokemonImage_'+str(mon_image_id)+'.png'
