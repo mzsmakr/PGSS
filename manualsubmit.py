@@ -92,6 +92,13 @@ for fullpath_filename in p.glob('*.png'):
                     print('The pokemon image is assigned as pokemon id:', pokemon_image_pokemon_id)
                     print('If the pokemon id is not correct, delete the pokemon image id:', pokemon_image_id)
                     print('and run raidsubmit.py again')
+        elif str(pokemon_id) == 'Not':
+            img = cv2.imread(str(fullpath_filename),3)
+            pokemon_image_id = rs.RaidNearby().get_pokemon_image_id(img)
+            if db.update_pokemon_image(session,pokemon_image_id,str(-2))==True:
+                fort_dest_file = not_valid_img_path + 'not_valid_pokemon_' + str(pokemon_image_id) + '.png'
+                shutil.move(fullpath_filename, fort_dest_file)
+                print('pokemon image id:', pokemon_image_id, 'is set as not valid')           
 
 print('Submitted')
 print('  ',fort_count,'gym images')
