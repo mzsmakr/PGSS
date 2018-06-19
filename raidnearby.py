@@ -498,10 +498,8 @@ class RaidNearby:
                 hatch_time = self.getHatchTime(time_text)
                 if hatch_time == -1:
                     LOG.error('time detection failed : {}'.format(time_text))
-                    fullpath_dest = str(self.not_find_path) + 'Org_' + str(filename)
+                    fullpath_dest = str(self.not_find_path) + 'Time_'+ time_text + '_Fort_' + str(gym) + '_GymImages_' + str(gym_image_id) + '.png' 
                     shutil.move(raidfilename,fullpath_dest)
-                    faild_time_name = str(self.not_find_path) + 'Time_' + str(filename) + '.png'
-                    shutil.copy2(self.timefile,faild_time_name)
                     return False
                 spawn_time = hatch_time - 3600
                 end_time = hatch_time + 2700
