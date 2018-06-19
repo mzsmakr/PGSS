@@ -498,9 +498,9 @@ class RaidNearby:
                 hatch_time = self.getHatchTime(time_text)
                 if hatch_time == -1:
                     LOG.error('time detection failed : {}'.format(time_text))
-                    fullpath_dest = str(self.not_find_path) + str(filename)
+                    fullpath_dest = str(self.not_find_path) + 'Org_' + str(filename)
                     shutil.move(raidfilename,fullpath_dest)
-                    faild_time_name = str(self.not_find_path) + str(filename_no_ext)+'_time.png'
+                    faild_time_name = str(self.not_find_path) + 'Time_' + str(filename) + '.png'
                     shutil.copy2(self.timefile,faild_time_name)
                     return False
                 spawn_time = hatch_time - 3600
@@ -514,7 +514,7 @@ class RaidNearby:
                         try:
                             database.update_raid_egg(self.session, gym, level, hatch_time)
                             database.updata_fort_sighting(self.session, gym, unix_time)
-                            LOG.info('New Egg is added.')
+                            LOG.info('***** New Egg is added. *****')
                         except:
                             LOG.error('Error to update raid egg for fort:{}'.format(gym))
                             self.session.rollback()
@@ -533,7 +533,7 @@ class RaidNearby:
                             try:
                                 database.update_raid_mon(self.session, gym, mon)
                                 database.updata_fort_sighting(self.session, gym, unix_time)
-                                LOG.info('New raid boss is added.')
+                                LOG.info('!!!!! New raid boss is added. !!!!!')
                             except:
                                 LOG.error('Error to update raid boss for fort:{}'.format(gym))
                                 self.session.rollback()

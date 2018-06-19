@@ -58,10 +58,7 @@ for fullpath_filename in p.glob('*.png'):
                 if gym_image_fort_id == unknown_fort_id or Force_update == True:
                     if db.update_gym_image(session,gym_image_id,fort_id) == True:
                         fort_result_file = os.getcwd() + '/success_img/Fort_' + str(fort_id) + '.png'
-                        url_result_file = os.getcwd() + '/success_img/Fort_'+str(fort_id) + '_url.jpg'
-                        url_org_file = os.getcwd() + '/url_img/'+str(fort_id) + '.jpg'
                         shutil.move(fullpath_filename, fort_result_file)
-                        shutil.copy(url_org_file, fort_result_file)
                         fort_count = fort_count+1
                 else:
                     print('The gym image is assigned as fort id:', gym_image_fort_id)

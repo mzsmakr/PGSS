@@ -23,7 +23,7 @@ PGSS scans raid near by images and identifies Gym,Raid Egg/Boss and time and the
 Read all raid near by screen shot image cropped by `crop.py` in `process_img` directory and extract gym/raid boss/hatch time information and update `raids` and `fort_sightings` table for monocle Hydro database. If raidnearby.py can't identify the gym then the gym image is stored in `unknown_img` as `FortImage_xxx.png`. Once gym is identified, check level and time. If time is Ongoing(Raid), then try to identify raid boss by checking with `pokemon_images` table. If the raid boss is unknown, then store the raid boss image into `non_find_img` as PokemonImage_xxx.png.
 
 ### findfort.py
-Read all gym images in `unknown_img` and identify the gym(fort) image by comparing fort URL images in `url_img`. If findfort.py finds matching gym(fort) in `url_img`, then update `gym_images` table to set identified `fort_id`. findfort.py checks images every 30 seconds. Fort URL images need to be downloaded by `downloadfortimg.py` before running `findfort.py`.
+Read all gym images in `unknown_img` and identify the gym(fort) image by comparing fort URL images in `url_img`. If findfort.py finds matching gym(fort) in `url_img`, then update `gym_images` table to set identified `fort_id`. findfort.py checks images every 30 seconds. Fort URL images need to be downloaded by `downloadfortimg.py` before running `findfort.py`. If findfort.py can't find matching jpg image in `url_img`, the gym image stored in `not_find_img` and you need to submit manually by renaming the image to `Fort_fortid.png` and run `python3.6 manualsubmit.py`. 
 
 ### downloadfortimg.py
 Download all fort URL images in `Forts` table. Set `MAP_START` and `MAP_END` in `config.py` to limit fort URL images to download if you want.
@@ -75,8 +75,8 @@ Discord bot to download user submitted raid nearby in your discord server. It sa
 9. Run `python3.6 raidscan.py` from the command line. When first run, raid_images and pokemon_images tables are added automatically.
 10. **Note. If you were running crop.bash for Frontend of ReadDevicePokeMap, stop crop.bash before running raidscan.py. raidscan.py itself gets screenshot image and crop with crop.py**. Don't worry, PGSS can identify gym images up to 99% of gyms automatically (without user input).
 11. Run `python3.6 rssbot.py` to start downloading user posted screenshot image on your discord server
-12. Wait until all gyms are identified. Check `success_img` and `need_check_img` directory to make sure all gym images are correctly identified.
-13. `PokemonImage_xxx.png` files are stored in `unknown_img` directory. Rename the file to `Pokemon_PokemonId.png`(e.g. `Pokemon_380.png` for Latias) and run `python3.6 manualsubmit.py`. This will train pokemon raid boss. Usually only one time training should be enough.
+12. Wait until all gyms are identified. Check `success_img` directory to make sure all gym images are correctly identified. If pgss can't find matching gym in `url_img`, the raid sighting image is stored in `not_find_img` and you have to manually assign fort id to the gym image. Rename the gym image to Fort_fortid.png and run `python3.6 manualsubmit.py`. 
+13. `PokemonImage_xxx.png` files are stored in `not_find_img` directory. Rename the file to `Pokemon_PokemonId.png`(e.g. `Pokemon_380.png` for Latias) and run `python3.6 manualsubmit.py`. This will train pokemon raid boss. Usually only one time training should be enough.
 14. If screenshot image size is not in config.py save the iamge to `not_find_img` as `Image_aaaxbbb.png` and you have to configure `RAID_NEARBY_SIZE`.
 
 ## Database Tables
