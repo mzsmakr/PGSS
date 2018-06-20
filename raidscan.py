@@ -12,7 +12,7 @@ import concurrent.futures
 LOG = getLogger('')
 
 cpu_count = os.cpu_count()
-LOG.info('cpu count = {}'.format(cpu_count))
+LOG.info('{} cpu cores found'.format(cpu_count))
 
 def exception_handler(loop, context):
     loop.default_exception_handler(context)
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     find_fort = findfort.FindFort()
     loop = asyncio.get_event_loop()
     loop.set_exception_handler(exception_handler)
-    executor = concurrent.futures.ProcessPoolExecutor()
+    executor = concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count)
     loop.set_default_executor(executor)
     loop.create_task(raid_nearby.main())
     loop.create_task(find_fort.findfort_main())
