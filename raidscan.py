@@ -7,6 +7,7 @@ import raidnearby
 import findfort
 import crop
 import os
+import concurrent.futures
 
 LOG = getLogger('')
 
@@ -22,6 +23,8 @@ if __name__ == '__main__':
     find_fort = findfort.FindFort()
     loop = asyncio.get_event_loop()
     loop.set_exception_handler(exception_handler)
+    executor = concurrent.futures.ProcessPoolExecutor()
+    loop.set_default_executor(executor)
     loop.create_task(raid_nearby.main())
     loop.create_task(find_fort.findfort_main())
     loop.create_task(crop.crop_task())
