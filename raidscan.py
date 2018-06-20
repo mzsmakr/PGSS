@@ -11,6 +11,9 @@ import concurrent.futures
 
 LOG = getLogger('')
 
+cpu_count = os.cpu_count()
+LOG.info('cpu count = {}'.format(cpu_count))
+
 def exception_handler(loop, context):
     loop.default_exception_handler(context)
     exception = context.get('exception')
