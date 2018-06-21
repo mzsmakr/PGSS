@@ -87,7 +87,7 @@ async def crop_img(fullpath_filename):
             LOG.info('Check not_find_img directory and add RAID_NEARBY_SIZE in config for the screenshot iamge')
         img = cv2.resize(img, None, fx = 0.35, fy = 0.35) 
         save_file_path = web_server_path+'screenshot.jpg'
-        cv2.imwrite(save_file_path, img)
+        cv2.imwrite(save_file_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
         os.remove(fullpath_filename)
         await asyncio.sleep(0.1) 
     
