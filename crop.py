@@ -8,6 +8,7 @@ from config import SCREENSHOT_SAVE_PATH, RAID_NEARBY_SIZE
 import asyncio
 import shutil
 import math
+import raidnearby
 #import pdb; pdb.set_trace()
 
 LOG = getLogger('')
@@ -86,7 +87,7 @@ async def crop_img(fullpath_filename):
             LOG.info('Check not_find_img directory and add RAID_NEARBY_SIZE in config for the screenshot iamge')
         img = cv2.resize(img, None, fx = 0.35, fy = 0.35) 
         save_file_path = web_server_path+'screenshot.jpg'
-        cv2.imwrite(save_file_path, img)
+        cv2.imwrite(save_file_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
         os.remove(fullpath_filename)
         await asyncio.sleep(0.1) 
     
@@ -100,6 +101,22 @@ async def crop_task():
         for fullpath_filename in screenshot_path.glob('*.png'):
             await crop_img(fullpath_filename)
         await asyncio.sleep(0.2) # task runs every 0.2 seconds
+
+def exception_handler(loop, context):
+    loop.default_exception_handler(context)
+    exception = context.get('exception')
+    if isinstance(exception, Exception):
+        LOG.error("Found unhandeled exception. Stoping...")
+        loop.stop()
+
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.set_exception_handler(exception_handler)
+    loop.create_task(crop_task())
+    loop.run_forever()
+    loop.close()
+
+
 
 
 

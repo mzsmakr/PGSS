@@ -147,11 +147,20 @@ class FindFort:
         LOG.info('Done')
         return
     
-if __name__ == '__main__':
-    findfort = FindFort()
-    findfort.findfort_main()
+def exception_handler(loop, context):
+    loop.default_exception_handler(context)
+    exception = context.get('exception')
+    if isinstance(exception, Exception):
+        LOG.error("Found unhandeled exception. Stoping...")
+        loop.stop()
 
-                    
+if __name__ == '__main__':
+    find_fort = FindFort()
+    loop = asyncio.get_event_loop()
+    loop.set_exception_handler(exception_handler)
+    loop.create_task(find_fort.findfort_main())
+    loop.run_forever()
+    loop.close()                    
                     
                     
             
