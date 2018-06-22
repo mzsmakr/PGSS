@@ -247,12 +247,12 @@ def update_raid_mon(session, fort_id, pokemon_id):
 def updata_fort_sighting(session, fort_id, unix_time):
     fort_sighting = session.query(FortSighting).filter_by(fort_id=str(fort_id)).first()
     if fort_sighting is None:
-        session.add(FortSighting(fort_id = str(fort_id), last_modified = int(unix_time), updated = int(unix_time)))
+        session.add(FortSighting(fort_id = str(fort_id), team =  int(0), last_modified = int(unix_time), updated = int(unix_time)))
         session.commit()
         fort_sighting = session.query(FortSighting).filter_by(fort_id=str(fort_id)).first()            
     fort_sighting.updated = int(unix_time)
     fort_sighting.last_modified = int(unix_time)
-    fort_sighting.team = 0
+    fort_sighting.team = int(0)
     session.commit()
 
 def add_gym_image(session,fort_id,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2):
