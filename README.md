@@ -37,9 +37,10 @@ Discord bot to download user submitted raid nearby in your discord server. It sa
 ### Running order
 1. Copy config.example.py and rename to config.py. Configure config.py based on your setup.
 2. Run `python3.6 downloadfortimg.py` once to download all gym(fort) URL images
-3. Run `python3.6 raidscan.py` start raid iamge scanning
-4. Run `python3.6 rssbot.py` to start downloading user posted screenshot image on your discord server
-5. If PGSS can't find gym then the gym image is saved in `not_find_img`. Check the images in the directory and identify the gym. Then rename the image to `Fort_xxx.png` or `Pokemon_yyy.png`. Then Run `python3.6 manualsubmit.py`. `manualsubmit.py` updates `fort_id` to xxx in `raid_images` and `pokemon_id` to yyy in `pokemon_images` table.
+3. Run `python3.6 raidscan.py` start raid image scanning. With this command, `crop.py`, `raidnearby.py` and `findfort.py` run all together. If you run with `python3.6 raidscan.py NO_FINDFORT`, `findfort.py` dosen't run and need to run `findfort.py` separately. This option is recommanded when you start raid scan in new area and most of gym images are unknown.
+4. If you run `raidscan.py` with **NO_FINDFORT** option, run open another terminal and activate `venv`, then run `python3.6 findfort.py`.
+5. _Optional_. Run `python3.6 rssbot.py` to start downloading user posted screenshot image on your discord server 
+6. If PGSS can't find gym then the gym image is saved in `not_find_img`. Check the images in the directory and identify the gym. Then rename the image to `Fort_xxx.png` or `Pokemon_yyy.png`. Then Run `python3.6 manualsubmit.py`. `manualsubmit.py` updates `fort_id` to xxx in `raid_images` and `pokemon_id (Pokedex#)` to yyy in `pokemon_images` table.
 
 ## Setting up
 1. Install Python 3.6
@@ -130,7 +131,7 @@ CREATE TABLE gym_images (
     PRIMARY KEY (id)
 );
 ```
-### pokemon_images
+#### pokemon_images
 ```
 CREATE TABLE pokemon_images (
     id INTEGER NOT NULL AUTO_INCREMENT, 
