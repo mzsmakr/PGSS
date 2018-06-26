@@ -113,8 +113,11 @@ class RaidNearby:
 
     # Detect hatch time from time image
     def detectTime(self, time_img):
-        cv2.imwrite(self.timefile, time_img)
-        text = pytesseract.image_to_string(Image.open(self.timefile))
+        img_gray = cv2.cvtColor(time_img, cv2.COLOR_BGR2GRAY)
+        ret, thresh1 = cv2.threshold(img_gray, 220, 255, cv2.THRESH_BINARY)
+        thresh1_color = cv2.cvtColor(thresh1, cv2.COLOR_GRAY2BGR)
+        cv2.imwrite(self.timefile, thresh1_color)
+        text = pytesseract.image_to_string(Image.open(self.timefile),config='-psm 7')
     #    os.remove(self.timefile)
     #    cv2.imshow('time', thresh1)
     #    cv2.waitKey(0)
@@ -413,7 +416,7 @@ class RaidNearby:
                     else:
                         return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
                 else:
-                    retur -1
+                    return -1
             # Europe format
             else:
                 data = data.replace('~','')
