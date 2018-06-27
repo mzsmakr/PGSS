@@ -595,8 +595,8 @@ class RaidNearby:
                         shutil.copy2(raidfilename,fullpath_dest)
                 processed_pokemon_name = 'Pokemon_' + str(mon) + '_PokemonImages_' + str(mon_image_id) + '.png'
                 processed_file_dest = str(self.success_img_path) + str(processed_pokemon_name)
-            processed_gym_name = 'Fort_'+str(gym)+'_GymImages_'+ str(gym_image_id)+'_Time_' +  + ''.png'
-            processed_file_dest = str(self.success_img_path) + str(processed_gym_name)     
+            processed_gym_name = 'Fort_'+str(gym)+'_GymImages_'+ str(gym_image_id)+'.png'
+            processed_file_dest = str(self.success_img_path) + str(processed_gym_name)
             shutil.copy2(raidfilename, processed_file_dest)                
         elif int(gym) == self.not_a_fort_id:
             LOG.info('Raid image is not valid')
