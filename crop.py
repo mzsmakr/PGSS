@@ -51,10 +51,7 @@ async def crop_img(fullpath_filename):
             if width == size['width'] and height == size['height']:
                 find_size_config = True
                 LOG.debug('ext = {}'.format(ext))
-                if ext == '.jpg':
-                    refB = 150
-                else:
-                    refB = 162                
+                refB = 156
                 refG = 194
                 refR = 252
                 dif1 = pow(img[size['comp_y']][size['comp_x']][0] - refB,2)
@@ -63,7 +60,7 @@ async def crop_img(fullpath_filename):
                 error = math.sqrt(dif1+dif2+dif3)
                 LOG.debug('comp error:{} B:{}({}) G:{}({}) R:{}({})'.format(error, img[size['comp_y']][size['comp_x']][0], refB, img[size['comp_y']][size['comp_x']][1], refG, img[size['comp_y']][size['comp_x']][2],refR))               
 #                        if (img[size['comp_y']][size['comp_x']] == [162, 193, 254]).all():
-                if error <= 10:
+                if error <= 15:
                     LOG.info('screenshot with {}x{} found and raid'.format(width, height))
                     crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
                     crop2 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
