@@ -68,12 +68,18 @@ async def crop_img(fullpath_filename):
                     crop4 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
                     crop5 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
                     crop6 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
-                    cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
-                    cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
-                    cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
-                    cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
-                    cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
-                    cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
+                    if int(crop1.mean()) < 240:
+                        cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
+                    if int(crop2.mean()) < 240:
+                        cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
+                    if int(crop3.mean()) < 240:
+                        cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
+                    if int(crop4.mean()) < 240:
+                        cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
+                    if int(crop5.mean()) < 240:
+                        cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
+                    if int(crop6.mean()) < 240:
+                        cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
                 else:
                     LOG.info('screenshot with {}x{} found without raid'.format(width, height))
 #                        os.remove(fullpath_filename)
