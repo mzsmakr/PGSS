@@ -140,7 +140,7 @@ class RaidNearby:
         final_img = cv2.hconcat([final_img, right_img])
         cv2.imwrite(self.timefile, final_img)
         text = pytesseract.image_to_string(Image.open(self.timefile),
-                                           config='-c tessedit_char_whitelist=1234567890:~AMP -psm 7')
+                                           config='-psm 7')
         return text
 
     # Detect gym from raid sighting image
