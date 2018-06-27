@@ -420,14 +420,14 @@ class RaidNearby:
             # US format
             AM = data.find('AM')
             PM = data.find('PM')
-            if AM >= 5:
+            if AM >= 4:
                 hour_min = data[:AM-1].split(':')
                 ret, hour_min = self.checkHourMin(hour_min)
                 if ret == True:
                     return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
                 else:
                     return -1
-            elif PM >= 5:
+            elif PM >= 4:
                 hour_min = data[:PM-1].split(':')
                 ret, hour_min = self.checkHourMin(hour_min)
                 if ret == True:
