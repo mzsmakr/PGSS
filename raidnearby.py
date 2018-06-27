@@ -114,13 +114,33 @@ class RaidNearby:
     # Detect hatch time from time image
     def detectTime(self, time_img):
         img_gray = cv2.cvtColor(time_img, cv2.COLOR_BGR2GRAY)
-        ret, thresh1 = cv2.threshold(img_gray, 220, 255, cv2.THRESH_BINARY)
-        thresh1_color = cv2.cvtColor(thresh1, cv2.COLOR_GRAY2BGR)
-        cv2.imwrite(self.timefile, thresh1_color)
-        text = pytesseract.image_to_string(Image.open(self.timefile),config='-psm 7')
-    #    os.remove(self.timefile)
-    #    cv2.imshow('time', thresh1)
-    #    cv2.waitKey(0)
+        ret, thresh1 = cv2.threshold(img_gray, 230, 255, cv2.THRESH_BINARY_INV)
+        final_img = np.zeros((thresh1.shape[0], int(thresh1.shape[1] * 0.25)), np.uint8)
+        right_img = np.zeros((thresh1.shape[0], int(thresh1.shape[1] * 0.15)), np.uint8)
+        separate_img = np.zeros((thresh1.shape[0], int(thresh1.shape[1] * 0.1)), np.uint8)
+        profile = []
+        letter_start = []
+        letter_end = []
+        count = 0
+        # get letters separation pixels
+        for i in range(thresh1.shape[1]):
+            sum_vertical = sum(thresh1[:, i])
+            profile.append(sum_vertical)
+            if len(letter_start) == len(letter_end):
+                if sum_vertical > 0:
+                    letter_start.append(i)
+            else:
+                if sum_vertical == 0:
+                    letter_end.append(i)
+                    count = count + 1
+        # Add blank(black) space between letters
+        for i in range(count):
+            final_img = cv2.hconcat([final_img, thresh1[0:thresh1.shape[0], letter_start[i]:letter_end[i]]])
+            final_img = cv2.hconcat([final_img, separate_img])
+        final_img = cv2.hconcat([final_img, right_img])
+        cv2.imwrite(self.timefile, final_img)
+        text = pytesseract.image_to_string(Image.open(self.timefile),
+                                           config='-c tessedit_char_whitelist=1234567890:~AMP -psm 7')
         return text
 
     # Detect gym from raid sighting image
