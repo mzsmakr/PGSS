@@ -421,14 +421,24 @@ class RaidNearby:
             AM = data.find('AM')
             PM = data.find('PM')
             if AM >= 4:
-                hour_min = data[:AM-1].split(':')
+                data = data.replace('A','')
+                data = data.replace('M','')
+                data = data.replace('~','')
+                data = data.replace('-','')
+                data = data.replace(' ','')
+                hour_min = data.split(':')
                 ret, hour_min = self.checkHourMin(hour_min)
                 if ret == True:
                     return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
                 else:
                     return -1
             elif PM >= 4:
-                hour_min = data[:PM-1].split(':')
+                data = data.replace('P','')
+                data = data.replace('M','')
+                data = data.replace('~','')
+                data = data.replace('-','')
+                data = data.replace(' ','')
+                hour_min = data.split(':')
                 ret, hour_min = self.checkHourMin(hour_min)
                 if ret == True:
                     if hour_min[0] == '12':
@@ -585,7 +595,7 @@ class RaidNearby:
                         shutil.copy2(raidfilename,fullpath_dest)
                 processed_pokemon_name = 'Pokemon_' + str(mon) + '_PokemonImages_' + str(mon_image_id) + '.png'
                 processed_file_dest = str(self.success_img_path) + str(processed_pokemon_name)
-            processed_gym_name = 'Fort_'+str(gym)+'_GymImages_'+ str(gym_image_id)+'.png'
+            processed_gym_name = 'Fort_'+str(gym)+'_GymImages_'+ str(gym_image_id)+'_Time_' +  + ''.png'
             processed_file_dest = str(self.success_img_path) + str(processed_gym_name)     
             shutil.copy2(raidfilename, processed_file_dest)                
         elif int(gym) == self.not_a_fort_id:
