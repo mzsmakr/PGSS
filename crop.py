@@ -36,11 +36,22 @@ if not os.path.exists(file_path):
     os.makedirs(web_server_path)  
 
 init_crop_py = False
-last_crop_all = np.zeros((10, 10, 3), np.uint8)
+last_crop1 = np.zeros((10, 10, 3), np.uint8)
+last_crop2 = np.zeros((10, 10, 3), np.uint8)
+last_crop3 = np.zeros((10, 10, 3), np.uint8)
+last_crop4 = np.zeros((10, 10, 3), np.uint8)
+last_crop5 = np.zeros((10, 10, 3), np.uint8)
+last_crop6 = np.zeros((10, 10, 3), np.uint8)
+diff_threshold = 3000
 
 async def crop_img(fullpath_filename):
-    global last_crop_all
     global init_crop_py
+    global last_crop1
+    global last_crop2
+    global last_crop3
+    global last_crop4
+    global last_crop5
+    global last_crop6
     filename = os.path.basename(fullpath_filename)
     filename, ext = os.path.splitext(filename)
     img = cv2.imread(str(fullpath_filename),3)
@@ -67,37 +78,65 @@ async def crop_img(fullpath_filename):
 #                        if (img[size['comp_y']][size['comp_x']] == [162, 193, 254]).all():
                 if error <= 15:
                     LOG.info('screenshot with {}x{} found and raid'.format(width, height))
-                    t1 = time.time()
-                    crop_all = img[size['crop_y1']:size['crop_y2'] + size['crop_h'], size['crop_x1']:size['crop_x3'] + size['crop_w']]
-                    if init_crop_py == False:
-                        last_crop_all = crop_all
-                    s = cv2.norm(crop_all, last_crop_all, cv2.NORM_L1)
-                    t2 = time.time()
                     scale = size['width']/1536
-                    if s > 20000*scale or init_crop_py==False:
-                        init_crop_py = True
-                        crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
-                        crop2 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
-                        crop3 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
-                        crop4 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
-                        crop5 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
-                        crop6 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
-                        if int(crop1.mean()) < 240:
+
+#                    if s > 20000*scale or init_crop_py==False:
+#                        LOG.info('New image. Cropped. s={} scale={} sec={}'.format(s, scale, t2 - t1))
+#                        LOG.info('Duplicate image. Not cropped. s={} scale={} sec={}'.format(s, scale, t2 - t1))
+
+                    crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
+                    crop2 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
+                    crop3 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
+                    crop4 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
+                    crop5 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
+                    crop6 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
+
+                    if init_crop_py == False:
+                        last_crop1 = crop1
+                        last_crop2 = crop2
+                        last_crop3 = crop3
+                        last_crop4 = crop4
+                        last_crop5 = crop5
+                        last_crop6 = crop6
+
+                    if int(crop1.mean()) < 240:
+                        s = cv2.norm(crop1, last_crop1, cv2.NORM_L1)
+                        LOG.info('crop1 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
                             cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
-                        if int(crop2.mean()) < 240:
+                            last_crop1 = crop1
+                    if int(crop2.mean()) < 240:
+                        s = cv2.norm(crop2, last_crop2, cv2.NORM_L1)
+                        LOG.info('crop2 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
                             cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
-                        if int(crop3.mean()) < 240:
+                            last_crop2 = crop2
+                    if int(crop3.mean()) < 240:
+                        s = cv2.norm(crop3, last_crop3, cv2.NORM_L1)
+                        LOG.info('crop3 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
                             cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
-                        if int(crop4.mean()) < 240:
+                            last_crop3 = crop3
+                    if int(crop4.mean()) < 240:
+                        s = cv2.norm(crop4, last_crop4, cv2.NORM_L1)
+                        LOG.info('crop4 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
                             cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
-                        if int(crop5.mean()) < 240:
+                            last_crop4 = crop4
+                    if int(crop5.mean()) < 240:
+                        s = cv2.norm(crop5, last_crop5, cv2.NORM_L1)
+                        LOG.info('crop5 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
                             cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
-                        if int(crop6.mean()) < 240:
+                            last_crop5 = crop5
+                    if int(crop6.mean()) < 240:
+                        s = cv2.norm(crop6, last_crop6, cv2.NORM_L1)
+                        LOG.info('crop6 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
                             cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
-                        last_crop_all = crop_all
-                        LOG.info('New image. Cropped. s={} scale={} sec={}'.format(s,scale,t2-t1))
-                    else:
-                        LOG.info('Duplicate image. Not cropped. s={} scale={} sec={}'.format(s,scale,t2-t1))
+                            last_crop6 = crop6
+
+                    init_crop_py = True
                 else:
                     LOG.info('screenshot with {}x{} found without raid'.format(width, height))
 #                        os.remove(fullpath_filename)
