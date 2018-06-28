@@ -67,11 +67,13 @@ async def crop_img(fullpath_filename):
 #                        if (img[size['comp_y']][size['comp_x']] == [162, 193, 254]).all():
                 if error <= 15:
                     LOG.info('screenshot with {}x{} found and raid'.format(width, height))
+                    t1 = time.time()
                     crop_all = img[size['crop_y1']:size['crop_y2'] + size['crop_h'], size['crop_x1']:size['crop_x3'] + size['crop_w']]
                     if init_crop_py == False:
                         last_crop_all = crop_all
                     s = cv2.norm(crop_all, last_crop_all, cv2.NORM_L1)
-                    scale = size['crop_w']/1536
+                    t2 = time.time()
+                    scale = size['width']/1536
                     if s > 20000*scale or init_crop_py==False:
                         init_crop_py = True
                         crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
@@ -93,9 +95,9 @@ async def crop_img(fullpath_filename):
                         if int(crop6.mean()) < 240:
                             cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
                         last_crop_all = crop_all
-                        LOG.info('New image. Cropped. s={} scale={}'.format(s,scale))
+                        LOG.info('New image. Cropped. s={} scale={} sec={}'.format(s,scale,t2-t1))
                     else:
-                        LOG.info('Duplicate image. Not cropped. s={} scale={}'.format(s,scale))
+                        LOG.info('Duplicate image. Not cropped. s={} scale={} sec={}'.format(s,scale,t2-t1))
                 else:
                     LOG.info('screenshot with {}x{} found without raid'.format(width, height))
 #                        os.remove(fullpath_filename)
