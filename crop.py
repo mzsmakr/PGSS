@@ -93,6 +93,9 @@ async def crop_img(fullpath_filename):
                         if int(crop6.mean()) < 240:
                             cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
                         last_crop_all = crop_all
+                        LOG.info('New image. Cropped. s={}'.format(s))
+                    else:
+                        LOG.info('Duplicate image. Not cropped. s={}'.format(s))
                 else:
                     LOG.info('screenshot with {}x{} found without raid'.format(width, height))
 #                        os.remove(fullpath_filename)
