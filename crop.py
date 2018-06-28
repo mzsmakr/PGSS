@@ -72,7 +72,7 @@ async def crop_img(fullpath_filename):
                         last_crop_all = crop_all
                     s = cv2.norm(crop_all, last_crop_all, cv2.NORM_L1)
                     scale = size['crop_w']/1536
-                    if s > 2000*scale or init_crop_py==False:
+                    if s > 20000*scale or init_crop_py==False:
                         init_crop_py = True
                         crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
                         crop2 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
@@ -93,9 +93,9 @@ async def crop_img(fullpath_filename):
                         if int(crop6.mean()) < 240:
                             cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
                         last_crop_all = crop_all
-                        LOG.info('New image. Cropped. s={}'.format(s))
+                        LOG.info('New image. Cropped. s={} scale={}'.format(s,scale))
                     else:
-                        LOG.info('Duplicate image. Not cropped. s={}'.format(s))
+                        LOG.info('Duplicate image. Not cropped. s={} scale={}'.format(s,scale))
                 else:
                     LOG.info('screenshot with {}x{} found without raid'.format(width, height))
 #                        os.remove(fullpath_filename)
