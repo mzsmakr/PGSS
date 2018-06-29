@@ -42,7 +42,7 @@ last_crop3 = np.zeros((10, 10, 3), np.uint8)
 last_crop4 = np.zeros((10, 10, 3), np.uint8)
 last_crop5 = np.zeros((10, 10, 3), np.uint8)
 last_crop6 = np.zeros((10, 10, 3), np.uint8)
-diff_threshold = 3000
+diff_threshold = 10000
 
 async def crop_img(fullpath_filename):
     global init_crop_py
