@@ -35,7 +35,23 @@ if not os.path.exists(file_path):
     LOG.info('not_find_img directory created')
     os.makedirs(web_server_path)  
 
+init_crop_py = False
+last_crop1 = np.zeros((10, 10, 3), np.uint8)
+last_crop2 = np.zeros((10, 10, 3), np.uint8)
+last_crop3 = np.zeros((10, 10, 3), np.uint8)
+last_crop4 = np.zeros((10, 10, 3), np.uint8)
+last_crop5 = np.zeros((10, 10, 3), np.uint8)
+last_crop6 = np.zeros((10, 10, 3), np.uint8)
+diff_threshold = 10000
+
 async def crop_img(fullpath_filename):
+    global init_crop_py
+    global last_crop1
+    global last_crop2
+    global last_crop3
+    global last_crop4
+    global last_crop5
+    global last_crop6
     filename = os.path.basename(fullpath_filename)
     filename, ext = os.path.splitext(filename)
     img = cv2.imread(str(fullpath_filename),3)
@@ -59,27 +75,69 @@ async def crop_img(fullpath_filename):
                 dif3 = pow(img[size['comp_y']][size['comp_x']][2] - refR,2)
                 error = math.sqrt(dif1+dif2+dif3)
                 LOG.debug('comp error:{} B:{}({}) G:{}({}) R:{}({})'.format(error, img[size['comp_y']][size['comp_x']][0], refB, img[size['comp_y']][size['comp_x']][1], refG, img[size['comp_y']][size['comp_x']][2],refR))               
-#                        if (img[size['comp_y']][size['comp_x']] == [162, 193, 254]).all():
                 if error <= 15:
                     LOG.info('screenshot with {}x{} found and raid'.format(width, height))
+                    scale = size['width']/1536
+
                     crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
                     crop2 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
                     crop3 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
                     crop4 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
                     crop5 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x2']:size['crop_x2']+size['crop_w']]
                     crop6 = img[size['crop_y2']:size['crop_y2']+size['crop_h'], size['crop_x3']:size['crop_x3']+size['crop_w']]
+
+                    if init_crop_py == False:
+                        last_crop1 = crop1
+                        last_crop2 = crop2
+                        last_crop3 = crop3
+                        last_crop4 = crop4
+                        last_crop5 = crop5
+                        last_crop6 = crop6
+
                     if int(crop1.mean()) < 240:
-                        cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
+                        s = cv2.norm(crop1, last_crop1, cv2.NORM_L1)
+                        LOG.debug('crop1 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
+                            cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
+                            last_crop1 = crop1
+                            LOG.debug('New Image. crop1 saved. s={} scale={}'.format(s, scale))
                     if int(crop2.mean()) < 240:
-                        cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
+                        s = cv2.norm(crop2, last_crop2, cv2.NORM_L1)
+                        LOG.debug('crop2 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
+                            cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
+                            last_crop2 = crop2
+                            LOG.debug('New Image. crop2 saved. s={} scale={}'.format(s, scale))
                     if int(crop3.mean()) < 240:
-                        cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
+                        s = cv2.norm(crop3, last_crop3, cv2.NORM_L1)
+                        LOG.debug('crop3 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
+                            cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
+                            last_crop3 = crop3
+                            LOG.debug('New Image. crop3 saved. s={} scale={}'.format(s, scale))
                     if int(crop4.mean()) < 240:
-                        cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
+                        s = cv2.norm(crop4, last_crop4, cv2.NORM_L1)
+                        LOG.debug('crop4 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
+                            cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
+                            last_crop4 = crop4
+                            LOG.debug('New Image. crop4 saved. s={} scale={}'.format(s, scale))
                     if int(crop5.mean()) < 240:
-                        cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
+                        s = cv2.norm(crop5, last_crop5, cv2.NORM_L1)
+                        LOG.debug('crop5 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
+                            cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
+                            last_crop5 = crop5
+                            LOG.debug('New Image. crop5 saved. s={} scale={}'.format(s, scale))
                     if int(crop6.mean()) < 240:
-                        cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
+                        s = cv2.norm(crop6, last_crop6, cv2.NORM_L1)
+                        LOG.debug('crop6 s={} scale={}'.format(s, scale))
+                        if s >= diff_threshold*scale*scale or init_crop_py==False:
+                            cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
+                            last_crop6 = crop6
+                            LOG.debug('New Image. crop6 saved. s={} scale={}'.format(s, scale))
+
+                    init_crop_py = True
                 else:
                     LOG.info('screenshot with {}x{} found without raid'.format(width, height))
 #                        os.remove(fullpath_filename)
