@@ -39,7 +39,7 @@ class FindFort:
                 session.close()
                 sys.exit(1)
             except:
-                LOG.error('Matching error')
+                LOG.error('Matching error with {}'.format(str(url_fullpath_filename)))
             else:
                 url_filename = os.path.basename(url_fullpath_filename)
                 fort_id, ext = os.path.splitext(url_filename)            
