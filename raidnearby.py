@@ -112,19 +112,19 @@ class RaidNearby:
         return level
 
     # Detect hatch time from time image
-    def detectTime(self, time_img):
-        img_gray = cv2.cvtColor(time_img, cv2.COLOR_BGR2GRAY)
-        ret, thresh1 = cv2.threshold(img_gray, 230, 255, cv2.THRESH_BINARY_INV)
-        final_img = np.zeros((thresh1.shape[0], int(thresh1.shape[1] * 0.25)), np.uint8)
-        right_img = np.zeros((thresh1.shape[0], int(thresh1.shape[1] * 0.15)), np.uint8)
-        separate_img = np.zeros((thresh1.shape[0], int(thresh1.shape[1] * 0.1)), np.uint8)
+    def detectTime(self, time_binary):
+#        img_gray = cv2.cvtColor(time_img, cv2.COLOR_BGR2GRAY)
+#        ret, thresh1 = cv2.threshold(img_gray, 230, 255, cv2.THRESH_BINARY_INV)
+        final_img = np.zeros((time_binary.shape[0], int(time_binary.shape[1] * 0.25)), np.uint8)
+        right_img = np.zeros((time_binary.shape[0], int(time_binary.shape[1] * 0.15)), np.uint8)
+        separate_img = np.zeros((time_binary.shape[0], int(time_binary.shape[1] * 0.1)), np.uint8)
         profile = []
         letter_start = []
         letter_end = []
         count = 0
         # get letters separation pixels
-        for i in range(thresh1.shape[1]):
-            sum_vertical = sum(thresh1[:, i])
+        for i in range(time_binary.shape[1]):
+            sum_vertical = sum(time_binary[:, i])
             profile.append(sum_vertical)
             if len(letter_start) == len(letter_end):
                 if sum_vertical > 0:
@@ -135,12 +135,14 @@ class RaidNearby:
                     count = count + 1
         # Add blank(black) space between letters
         for i in range(count):
-            final_img = cv2.hconcat([final_img, thresh1[0:thresh1.shape[0], letter_start[i]:letter_end[i]]])
+            final_img = cv2.hconcat([final_img, time_binary[0:time_binary.shape[0], letter_start[i]:letter_end[i]]])
             final_img = cv2.hconcat([final_img, separate_img])
         final_img = cv2.hconcat([final_img, right_img])
+        kernel = np.ones((2, 2), np.uint8)
+        final_img = cv2.dilate(final_img, kernel, iterations=1)
         cv2.imwrite(self.timefile, final_img)
         text = pytesseract.image_to_string(Image.open(self.timefile),
-                                           config='-psm 7')
+                                           config='-c tessedit_char_whitelist=1234567890:~AMP -psm 7')
         return text
 
     # Detect gym from raid sighting image
@@ -392,12 +394,16 @@ class RaidNearby:
         pokemon_image_id = database.get_pokemon_image_id(self.session,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
         return pokemon_image_id
 
-    def detectEgg(self, data):
-        LOG.debug('time data: {}'.format(data))
-        if data[:2] == 'On' or data[:2] == 'Ra' or data == '':
-            return False
+    def detectEgg(self, time_img):
+        img_gray = cv2.cvtColor(time_img, cv2.COLOR_BGR2GRAY)
+        ret, thresh1 = cv2.threshold(img_gray, 220, 255, cv2.THRESH_BINARY_INV)
+        kernel = np.ones((2, 2), np.uint8)
+        thresh1 = cv2.erode(thresh1, kernel, iterations=1)
+        time_mean = cv2.mean(time_img, thresh1)
+        if time_mean[2] > (time_mean[0]+50): # Red is greater than Blue+50
+            return True, thresh1
         else:
-            return True
+            return False, thresh1
 
     def checkHourMin(self, hour_min):
         hour_min[0] = hour_min[0].replace('O','0')
@@ -524,10 +530,13 @@ class RaidNearby:
         level_img = img_full[y2[0]:y2[1], x2[0]:x2[1]]    
         #cv2.rectangle(img_egg,(x2[0],y2[0]),(x2[1],y2[1]),(0,255,0),1)    
 
-        time_text = self.detectTime(time_img)
+        egg, time_binary = self.detectEgg(time_img)
+        if egg == True:
+            time_text = self.detectTime(time_binary)
+        else:
+            time_text = 'Raid Boss'
         level = self.detectLevel(level_img)
         gym_image_id, gym, error_gym = self.detectGym(img_full)
-        egg = self.detectEgg(time_text)
 
         update_raid = True    
         # old file
