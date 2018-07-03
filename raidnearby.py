@@ -400,6 +400,7 @@ class RaidNearby:
         kernel = np.ones((2, 2), np.uint8)
         thresh1 = cv2.erode(thresh1, kernel, iterations=1)
         time_mean = cv2.mean(time_img, thresh1)
+        print(time_mean)
         if time_mean[2] > (time_mean[0]+50): # Red is greater than Blue+50
             return True, thresh1
         else:
