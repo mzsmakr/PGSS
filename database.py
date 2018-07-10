@@ -7,7 +7,7 @@ import time
 from sqlalchemy import create_engine, Column, Boolean, Integer, String, Float, SmallInteger, \
         BigInteger, ForeignKey, Index, UniqueConstraint, \
         create_engine, cast, func, desc, asc, desc, and_, exists
-from sqlalchemy.orm import scoped_session, sessionmaker, relationship, eagerload, foreign, remote
+from sqlalchemy.orm import sessionmaker, relationship, eagerload, foreign, remote
 from sqlalchemy.types import TypeDecorator, Numeric, Text, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.exc import NoResultFound
@@ -73,7 +73,7 @@ else:
     FLOAT_TYPE = Float(asdecimal=False)
 
 Base = declarative_base()
-engine = create_engine(DB_ENGINE)
+engine = create_engine(DB_ENGINE, pool_recycle=3600)
 
 class Fort(Base):
     __tablename__ = 'forts'
@@ -166,7 +166,7 @@ class PokemonImage(Base):
 
 # create gym_images and pokemon_images table if non
 Base.metadata.create_all(bind=engine)
-Session = scoped_session(sessionmaker(bind=engine))
+Session = sessionmaker(bind=engine)
 
 def get_gym_images(session):
     return session.query(GymImage).all()
