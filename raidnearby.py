@@ -645,13 +645,14 @@ class RaidNearby:
         
         while True:
             self.session = database.Session()
+            await asyncio.sleep(0.5)
             await self.reloadImagesDB()
             for fullpath_filename in self.p.glob('*.png'):
                 LOG.debug('process {}'.format(fullpath_filename))
                 await self.processRaidImage(fullpath_filename)
                 await asyncio.sleep(0.1)
             self.session.close()
-            await asyncio.sleep(1) 
+            await asyncio.sleep(0.5)
 
 
 if __name__ == '__main__':
