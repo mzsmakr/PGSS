@@ -38,6 +38,12 @@ if not os.path.exists(file_path):
     os.makedirs(file_path)
 
 
+def save_url_img(fort_img, save_url_full_path):
+    height, width, channels = img.shape
+    scale_fort = width / 320
+    crop = fort_img[int(74 * scale_fort):int(246 * scale_fort), int(74 * scale_fort):int(144 * scale_fort)]
+    cv2.imwrite(save_url_full_path, crop)
+
 for fullpath_filename in p.glob('*.png'):
     filename = os.path.basename(fullpath_filename)
     print('Read', filename)
@@ -64,6 +70,9 @@ for fullpath_filename in p.glob('*.png'):
                     print('The gym image is assigned as fort id:', gym_image_fort_id)
                     print('If the fort id is not correct, delete the gym image id:', gym_image_id)
                     print('and run submit.py again')
+            url_full_path = url_image_path + str(fort_id) + '.png'
+            if not os.path.exists(url_full_path):
+                save_url_img(img, url_full_path)
         elif str(fort_id) == 'Not':
             img = cv2.imread(str(fullpath_filename),3)
             gym_image_id = rs.RaidNearby().get_gym_image_id(img)
