@@ -54,14 +54,14 @@ class FindFort:
     #            await asyncio.sleep(0.01)
             
         LOG.info('fort_filename:{} max_fort_id: {} max_value: {}'.format(fort_filename,max_fort_id, max_value))
+        img = cv2.imread(str(fort_fullpath_filename), 3)
+        gym_image_id = self.raidnearby.get_gym_image_id(img)
+        gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
         if float(max_value) >= 0.7:
             LOG.info(str(fort_fullpath_filename))
-            img = cv2.imread(str(fort_fullpath_filename),3)
-            gym_image_id = self.raidnearby.get_gym_image_id(img)
-            gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
             if int(max_fort_id) == int(gym_image_fort_id):
                 LOG.info('This gym image is already trained')
-                fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_' + str(max_value) +'.png'
+                fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_GymImages_' + str(gym_image_id) + '_' + '{:.3f}'.format(max_value) + '.png'
                 url_result_file = os.getcwd() + '/success_img/Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
                 shutil.move(fort_fullpath_filename, fort_result_file)
                 shutil.copy(max_url_fullpath_filename, url_result_file)
@@ -73,13 +73,13 @@ class FindFort:
                         db.update_gym_image(session,gym_image_id,max_fort_id)
                     except:
                         LOG.error('Error to update gym_images for gym_images.id:{} gym_images.fort_id:{}'.format(gym_image_id,max_fort_id))
-                        fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_' + str(max_value) +'.png'
+                        fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_GymImages_' + str(gym_image_id) + '_' + '{:.3f}'.format(max_value) + '.png'
                         url_result_file = os.getcwd() + '/not_find_img/Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
                         shutil.move(fort_fullpath_filename, fort_result_file)
                         shutil.copy(max_url_fullpath_filename, url_result_file)
                         LOG.error('Successfully found fort fort_id:{}, but failed to updata gym_images database. Check not_find_img with the fort_id'.format(max_fort_id))
                     else:
-                        fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_' + str(max_value) +'.png'
+                        fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_GymImages_' + str(gym_image_id) + '_' + '{:.3f}'.format(max_value) + '.png'
                         url_result_file = os.getcwd() + '/success_img/Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
                         process_img_path = os.getcwd() + '/process_img/Fort_' + str(max_fort_id) + '.png'
                         shutil.copy(fort_fullpath_filename, process_img_path)
@@ -91,13 +91,13 @@ class FindFort:
                     LOG.info('Check not_find_img directory.')       
                     LOG.info('If the Fort_{}.png and Fort_{}_url.jpg in not_find_img are correct'.format(str(max_fort_id),str(max_fort_id)))
                     LOG.info('Run "python3.6 manualsubmit.py force"'.format(str(max_fort_id),str(max_fort_id)))
-                    fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_' + str(max_value) +'.png'
+                    fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_GymImages_' + str(gym_image_id) + '_' + '{:.3f}'.format(max_value) + '.png'
                     url_result_file = os.getcwd() + '/not_find_img/Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
                     shutil.move(fort_fullpath_filename, fort_result_file)
                     shutil.copy(max_url_fullpath_filename, url_result_file)
         elif float(max_value) >= 0.60:
-            fort_result_file = os.getcwd() + '/not_find_img/Fort_' + str(max_fort_id) + '_' + str(max_value) +'.png'
-            url_result_file = os.getcwd() + '/not_find_img/Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
+            fort_result_file = os.getcwd() + '/not_find_img/LowConfidence_Fort_' + str(max_fort_id) + '_GymImages_' + str(gym_image_id) + '_' + '{:.3f}'.format(max_value) + '.png'
+            url_result_file = os.getcwd() + '/not_find_img/LowConfidence_Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
             shutil.move(fort_fullpath_filename, fort_result_file)
             shutil.copy(max_url_fullpath_filename, url_result_file)
             LOG.info('Found fort id: {} but need to verify'.format(max_fort_id))
