@@ -95,47 +95,77 @@ async def crop_img(fullpath_filename):
                         last_crop6 = crop6
 
                     if int(crop1.mean()) < 240:
-                        s = cv2.norm(crop1, last_crop1, cv2.NORM_L1)
-                        LOG.debug('crop1 s={} scale={}'.format(s, scale))
-                        if s >= diff_threshold*scale*scale or init_crop_py==False:
-                            cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
+                        if last_crop1.shape == crop1.shape:
+                            s = cv2.norm(crop1, last_crop1, cv2.NORM_L1)
+                            LOG.debug('crop1 s={} scale={}'.format(s, scale))
+                            if s >= diff_threshold*scale*scale or init_crop_py==False:
+                                cv2.imwrite(crop_save_path+filename+'_01.png', crop1)
+                                last_crop1 = crop1
+                                LOG.debug('New Image. crop1 saved. s={} scale={}'.format(s, scale))
+                        else:
+                            cv2.imwrite(crop_save_path + filename + '_01.png', crop1)
                             last_crop1 = crop1
-                            LOG.debug('New Image. crop1 saved. s={} scale={}'.format(s, scale))
+                            LOG.debug('New Image. crop1 saved.')
                     if int(crop2.mean()) < 240:
-                        s = cv2.norm(crop2, last_crop2, cv2.NORM_L1)
-                        LOG.debug('crop2 s={} scale={}'.format(s, scale))
-                        if s >= diff_threshold*scale*scale or init_crop_py==False:
-                            cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
+                        if last_crop2.shape == crop2.shape:
+                            s = cv2.norm(crop2, last_crop2, cv2.NORM_L1)
+                            LOG.debug('crop2 s={} scale={}'.format(s, scale))
+                            if s >= diff_threshold*scale*scale or init_crop_py==False:
+                                cv2.imwrite(crop_save_path+filename+'_02.png', crop2)
+                                last_crop2 = crop2
+                                LOG.debug('New Image. crop2 saved. s={} scale={}'.format(s, scale))
+                        else:
+                            cv2.imwrite(crop_save_path + filename + '_02.png', crop2)
                             last_crop2 = crop2
-                            LOG.debug('New Image. crop2 saved. s={} scale={}'.format(s, scale))
+                            LOG.debug('New Image. crop2 saved.')
                     if int(crop3.mean()) < 240:
-                        s = cv2.norm(crop3, last_crop3, cv2.NORM_L1)
-                        LOG.debug('crop3 s={} scale={}'.format(s, scale))
-                        if s >= diff_threshold*scale*scale or init_crop_py==False:
-                            cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
+                        if last_crop3.shape == crop3.shape:
+                            s = cv2.norm(crop3, last_crop3, cv2.NORM_L1)
+                            LOG.debug('crop3 s={} scale={}'.format(s, scale))
+                            if s >= diff_threshold*scale*scale or init_crop_py==False:
+                                cv2.imwrite(crop_save_path+filename+'_03.png', crop3)
+                                last_crop3 = crop3
+                                LOG.debug('New Image. crop3 saved. s={} scale={}'.format(s, scale))
+                        else:
+                            cv2.imwrite(crop_save_path + filename + '_03.png', crop3)
                             last_crop3 = crop3
-                            LOG.debug('New Image. crop3 saved. s={} scale={}'.format(s, scale))
+                            LOG.debug('New Image. crop3 saved.')
                     if int(crop4.mean()) < 240:
-                        s = cv2.norm(crop4, last_crop4, cv2.NORM_L1)
-                        LOG.debug('crop4 s={} scale={}'.format(s, scale))
-                        if s >= diff_threshold*scale*scale or init_crop_py==False:
-                            cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
+                        if last_crop4.shape == crop4.shape:
+                            s = cv2.norm(crop4, last_crop4, cv2.NORM_L1)
+                            LOG.debug('crop4 s={} scale={}'.format(s, scale))
+                            if s >= diff_threshold*scale*scale or init_crop_py==False:
+                                cv2.imwrite(crop_save_path+filename+'_04.png', crop4)
+                                last_crop4 = crop4
+                                LOG.debug('New Image. crop4 saved. s={} scale={}'.format(s, scale))
+                        else:
+                            cv2.imwrite(crop_save_path + filename + '_04.png', crop4)
                             last_crop4 = crop4
-                            LOG.debug('New Image. crop4 saved. s={} scale={}'.format(s, scale))
+                            LOG.debug('New Image. crop4 saved.')
                     if int(crop5.mean()) < 240:
-                        s = cv2.norm(crop5, last_crop5, cv2.NORM_L1)
-                        LOG.debug('crop5 s={} scale={}'.format(s, scale))
-                        if s >= diff_threshold*scale*scale or init_crop_py==False:
-                            cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
+                        if last_crop5.shape == crop5.shape:
+                            s = cv2.norm(crop5, last_crop5, cv2.NORM_L1)
+                            LOG.debug('crop5 s={} scale={}'.format(s, scale))
+                            if s >= diff_threshold*scale*scale or init_crop_py==False:
+                                cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
+                                last_crop5 = crop5
+                                LOG.debug('New Image. crop5 saved.')
+                        else:
+                            cv2.imwrite(crop_save_path + filename + '_05.png', crop5)
                             last_crop5 = crop5
                             LOG.debug('New Image. crop5 saved. s={} scale={}'.format(s, scale))
                     if int(crop6.mean()) < 240:
-                        s = cv2.norm(crop6, last_crop6, cv2.NORM_L1)
-                        LOG.debug('crop6 s={} scale={}'.format(s, scale))
-                        if s >= diff_threshold*scale*scale or init_crop_py==False:
-                            cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
+                        if last_crop6.shape == crop6.shape:
+                            s = cv2.norm(crop6, last_crop6, cv2.NORM_L1)
+                            LOG.debug('crop6 s={} scale={}'.format(s, scale))
+                            if s >= diff_threshold*scale*scale or init_crop_py==False:
+                                cv2.imwrite(crop_save_path+filename+'_06.png', crop6)
+                                last_crop6 = crop6
+                                LOG.debug('New Image. crop6 saved. s={} scale={}'.format(s, scale))
+                        else:
+                            cv2.imwrite(crop_save_path + filename + '_06.png', crop6)
                             last_crop6 = crop6
-                            LOG.debug('New Image. crop6 saved. s={} scale={}'.format(s, scale))
+                            LOG.debug('New Image. crop6 saved.')
 
                     init_crop_py = True
                 else:
