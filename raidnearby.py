@@ -80,7 +80,6 @@ class RaidNearby:
             LOG.info('not_find_img directory created')
             os.makedirs(file_path)
 
-
         self.p = Path(self.process_img_path)
 
         self.timefile = "time.png"
@@ -644,15 +643,12 @@ class RaidNearby:
         
         while True:
             await self.reloadImagesDB()
-            
             for fullpath_filename in self.p.glob('*.png'):
                 LOG.debug('process {}'.format(fullpath_filename))
                 await self.processRaidImage(fullpath_filename)
                 await asyncio.sleep(0.1)
-            await asyncio.sleep(1) 
+            await asyncio.sleep(1)
         self.session.close()
-
-
 
 if __name__ == '__main__':
     raid_nearby = RaidNearby()
