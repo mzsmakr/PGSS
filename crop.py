@@ -149,11 +149,11 @@ async def crop_img(fullpath_filename):
                             if s >= diff_threshold*scale*scale or init_crop_py==False:
                                 cv2.imwrite(crop_save_path+filename+'_05.png', crop5)
                                 last_crop5 = crop5
-                                LOG.debug('New Image. crop5 saved.')
+                                LOG.debug('New Image. crop5 saved. s={} scale={}'.format(s, scale))
                         else:
                             cv2.imwrite(crop_save_path + filename + '_05.png', crop5)
                             last_crop5 = crop5
-                            LOG.debug('New Image. crop5 saved. s={} scale={}'.format(s, scale))
+                            LOG.debug('New Image. crop5 saved.')
                     if int(crop6.mean()) < 240:
                         if last_crop6.shape == crop6.shape:
                             s = cv2.norm(crop6, last_crop6, cv2.NORM_L1)
