@@ -102,12 +102,27 @@ class RaidNearby:
     # Detect level of raid from level image
     def detectLevel(self, level_img):
         img_gray = cv2.cvtColor(level_img,cv2.COLOR_BGR2GRAY)
-        ret,thresh1 = cv2.threshold(img_gray,240,255,cv2.THRESH_BINARY_INV)
-        height, width, channel = level_img.shape
-        scale = width/320
-        level = int(cv2.sumElems(thresh1)[0]/(self.level1_num*scale*scale) + 0.2)
-    #    cv2.imshow('level', thresh1)
-    #    cv2.waitKey(0)
+        ret,thresh1 = cv2.threshold(img_gray,220,255,cv2.THRESH_BINARY_INV)
+
+        profile = []
+        star_start = []
+        star_end = []
+        level = 0
+        valley_threshold = 0
+        # get letter separation pixels
+        for i in range(thresh1.shape[1]):
+            sum_vertical = sum(thresh1[:, i])
+            profile.append(sum_vertical)
+            if len(star_start) == len(star_end):
+                if sum_vertical > valley_threshold:
+                    star_start.append(i)
+            else:
+                if sum_vertical <= valley_threshold:
+                    star_end.append(i)
+                    level = level + 1
+        if level < 1 or level > 5:
+            level = -1
+
         return level
 
     # Detect hatch time from time image
@@ -550,6 +565,11 @@ class RaidNearby:
                     fullpath_dest = str(self.not_find_path) + 'Time_'+ time_text + '_Fort_' + str(gym) + '_GymImages_' + str(gym_image_id) + '.png' 
                     shutil.move(raidfilename,fullpath_dest)
                     return False
+                if level == -1:
+                    LOG.error('level detection failed.')
+                    fullpath_dest = str(self.not_find_path) + 'Level_Failed_Fort_' + str(gym) + '_GymImages_' + str(gym_image_id) + '.png'
+                    shutil.move(raidfilename,fullpath_dest)
+                    return False
                 spawn_time = hatch_time - 3600
                 end_time = hatch_time + 2700
                 time_battle = database.get_raid_battle_time(self.session, gym)
@@ -570,6 +590,10 @@ class RaidNearby:
             else:
                 mon_image_id, mon, error_mon = self.detectMon(img_full)
                 pokemon_id = database.get_raid_pokemon_id(self.session, gym)
+                if level == -1:
+                    LOG.error('level detection failed.')
+                    fullpath_dest = str(self.not_find_path) + 'Level_Failed_Fort_' + str(gym) + '_GymImages_' + str(gym_image_id) + '.png'
+                    shutil.move(raidfilename,fullpath_dest)
                 LOG.info('Pokemon: level={} time_text={} gym={} error_gym={} mon={} error_mon={}'.format(level, time_text, gym, error_gym, mon, error_mon))
                 LOG.info('mon:{} pokemon_id:{}'.format(mon,pokemon_id))
                 if int(mon) == int(pokemon_id) and int(mon) > 0:
@@ -603,6 +627,7 @@ class RaidNearby:
                         shutil.copy2(raidfilename,fullpath_dest)
                 processed_pokemon_name = 'Pokemon_' + str(mon) + '_PokemonImages_' + str(mon_image_id) + '.png'
                 processed_file_dest = str(self.success_img_path) + str(processed_pokemon_name)
+                shutil.copy2(raidfilename, processed_file_dest)
             processed_gym_name = 'Fort_'+str(gym)+'_GymImages_'+ str(gym_image_id)+'.png'
             processed_file_dest = str(self.success_img_path) + str(processed_gym_name)
             shutil.copy2(raidfilename, processed_file_dest)                
