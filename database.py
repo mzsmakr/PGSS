@@ -169,9 +169,11 @@ Base.metadata.create_all(bind=engine)
 Session = sessionmaker(bind=engine)
 
 def get_gym_images(session):
+    session.expire_all()
     return session.query(GymImage).all()
 
 def get_pokemon_images(session):
+    session.expire_all()
     return session.query(PokemonImage).all()
 
 unknown_fort_name = 'UNKNOWN FORT'
