@@ -76,7 +76,7 @@ async def crop_img(fullpath_filename):
                 error = math.sqrt(dif1+dif2+dif3)
                 LOG.debug('comp error:{} B:{}({}) G:{}({}) R:{}({})'.format(error, img[size['comp_y']][size['comp_x']][0], refB, img[size['comp_y']][size['comp_x']][1], refG, img[size['comp_y']][size['comp_x']][2],refR))               
                 if error <= 15:
-                    LOG.info('screenshot with {}x{} found and raid'.format(width, height))
+                    LOG.info('screenshot with {}x{} found with raid'.format(width, height))
                     scale = size['width']/1536
 
                     crop1 = img[size['crop_y1']:size['crop_y1']+size['crop_h'], size['crop_x1']:size['crop_x1']+size['crop_w']]
@@ -168,10 +168,10 @@ async def crop_img(fullpath_filename):
                             LOG.debug('New Image. crop6 saved.')
 
                     init_crop_py = True
+                    break
                 else:
                     LOG.info('screenshot with {}x{} found without raid'.format(width, height))
 #                        os.remove(fullpath_filename)
-                break
         if find_size_config == False:
             shutil.copy2(fullpath_filename, not_find_path+'Screen_' + str(width) + 'x' + str(height) + ext)
             LOG.info('No size matching config found in RAID_NEARBY_SIZE')
