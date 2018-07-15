@@ -15,6 +15,7 @@ import database
 from multiprocessing import Process
 import asyncio
 import re
+import traceback
 from sys import argv
 import importlib
 import hashlib
@@ -56,8 +57,6 @@ class RaidNearby:
         else:
             self.config = importlib.import_module('config')
 
-        LOG.info('Pokemon Screenshot Raid Scan Started')
-
         self.process_img_path = os.getcwd() + '/process_img/'
         self.copy_path = os.getcwd() + '/unknown_img/'
         self.not_find_path = os.getcwd() + '/not_find_img/'
@@ -89,18 +88,10 @@ class RaidNearby:
         self.timefile = "time.png"
         self.level1_num = 328950.0
 
-        self.session = database.Session()
-
-        self.gym_db = database.get_gym_images(self.session)
-        LOG.info('{} gym images loaded'.format(len(self.gym_db)))
-        #for gym in self.gym_db:
-        #    LOG.debug('%d %d %d %d %d %d %d %d', gym.id, gym.fort_id, gym.param_1, gym.param_2, gym.param_3, gym.param_4, gym.param_5, gym.param_6)
-
-        self.mon_db = [mon for mon in database.get_pokemon_images(self.session)]
-        LOG.info('{} pokemon images loaded'.format(len(self.mon_db)))
-
-        self.unknown_fort_id = database.get_unknown_fort_id(self.session)
-        self.not_a_fort_id = database.get_not_a_fort_id(self.session)
+        session = database.Session()
+        self.unknown_fort_id = database.get_unknown_fort_id(session)
+        self.not_a_fort_id = database.get_not_a_fort_id(session)
+        session.close()
         self.not_a_pokemon_id = -2
 
     # Detect level of raid from level image
@@ -202,10 +193,20 @@ class RaidNearby:
         gym_id = 0
         gym_image_id = 0
 
-        LOG.info('Gyms in gym_images: {}'.format(len(self.gym_db)))
+        session = database.Session()
+        gym_db = database.get_gym_images(session)
+        LOG.info('Gyms in gym_images: {}'.format(len(gym_db)))
+
+        unknown_gym_num = 0
+        for gym in gym_db:
+            if int(gym.fort_id) == int(self.unknown_fort_id):
+                unknown_gym_num = unknown_gym_num + 1
+        if unknown_gym_num != 0:
+            LOG.info('{} Unknown gym in DB'.format(unknown_gym_num))
+
         LOG.debug('top_mean0:{} top_mean1:{} top_mean2:{} left_mean0:{} left_mean1:{} left_mean2:{} '.format(top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2))
 
-        for gym in self.gym_db:
+        for gym in gym_db:
             dif1 = pow(top_mean0 - gym.param_1,2)
             dif2 = pow(top_mean1 - gym.param_2,2)
             dif3 = pow(top_mean2 - gym.param_3,2)
@@ -220,17 +221,16 @@ class RaidNearby:
                 gym_id = gym.fort_id
                 gym_image_id = gym.id
 
+
         if min_error > 10:
             LOG.info('gym_id:{} min_error:{}'.format(gym_id, min_error))
             LOG.info('GymImage added to database')
             gym_id = -1
-            database.add_gym_image(self.session,self.unknown_fort_id,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
-            gym_image_id = database.get_gym_image_id(self.session,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
-            # Reload gym_images
-            self.gym_db = database.get_gym_images(self.session)
-    #        for gym in self.gym_db:
-    #            LOG.debug('{} {} {} {} {} {} {} {}'.format(gym.id, gym.fort_id, gym.param_1, gym.param_2, gym.param_3, gym.param_4, gym.param_5, gym.param_6))
-            LOG.info('GymImage reloaded : {}'.format(len(self.gym_db)))
+            database.add_gym_image(session,self.unknown_fort_id,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
+            gym_image_id = database.get_gym_image_id(session,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
+
+        session.commit()
+        session.close()
 
         return gym_image_id, gym_id, min_error
 
@@ -267,7 +267,9 @@ class RaidNearby:
         left_mean1 = int(cropLeft[:,:,1].mean())
         left_mean2 = int(cropLeft[:,:,2].mean())
         LOG.debug('gym image param: {} {} {} {} {} {}'.format(top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2))
-        gym_image_id = database.get_gym_image_id(self.session,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
+        session = database.Session()
+        gym_image_id = database.get_gym_image_id(session,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
+        session.close()
         return gym_image_id
 
     def detectMon(self, img):
@@ -329,8 +331,19 @@ class RaidNearby:
         mon_id = 0
         mon_image_id = 0
 
+        session = database.Session()
+        mon_db = database.get_pokemon_images(session)
+        LOG.info('PokemonImages in DB : {}'.format(len(mon_db)))
+        unknown_mon_num = 0
+        for mon in mon_db:
+            if int(mon.pokemon_id) == 0:
+                unknown_mon_num = unknown_mon_num + 1
+
+        if unknown_mon_num != 0:
+            LOG.info('{} Unknown pokemon in DB'.format(unknown_mon_num))
+
         # get error from all gyms
-        for mon in self.mon_db:
+        for mon in mon_db:
             dif1 = pow(mean1 - mon.param_1,2)
             dif2 = pow(mean2 - mon.param_2,2)
             dif3 = pow(mean3 - mon.param_3,2)
@@ -347,10 +360,11 @@ class RaidNearby:
 
         if min_error > 5:
             mon_id = -1
-            database.add_pokemon_image(self.session,0,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
-            mon_image_id = database.get_pokemon_image_id(self.session,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
-            # Reload pokemon_images
-            self.mon_db = database.get_pokemon_images(self.session)
+            database.add_pokemon_image(session,0,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
+            mon_image_id = database.get_pokemon_image_id(session,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
+
+        session.commit()
+        session.close()
 
         return mon_image_id, mon_id, min_error
 
@@ -409,7 +423,9 @@ class RaidNearby:
         mean7 = int(crop7.mean())
 
         LOG.debug('pokemon image param: {} {} {} {} {} {} {}'.format(mean1,mean2,mean3,mean4,mean5,mean6,mean7))
-        pokemon_image_id = database.get_pokemon_image_id(self.session,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
+        session = database.Session()
+        pokemon_image_id = database.get_pokemon_image_id(session,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
+        session.close()
         return pokemon_image_id
 
     def detectEgg(self, time_img):
@@ -493,26 +509,6 @@ class RaidNearby:
             ret = False
         return ret
 
-    def reloadImagesDB(self):
-        unknown_gym_num = 0
-        for gym in self.gym_db:
-            if int(gym.fort_id) == int(self.unknown_fort_id):
-                unknown_gym_num = unknown_gym_num + 1
-        if unknown_gym_num != 0:
-            self.gym_db = database.get_gym_images(self.session)
-            LOG.info('{} Unknown gym in DB'.format(unknown_gym_num))
-            LOG.info('GymImage reloaded : {}'.format(len(self.gym_db)))        
-                                 
-        unknown_mon_num = 0 
-        for mon in self.mon_db:
-            if int(mon.pokemon_id) == 0:
-                unknown_mon_num = unknown_mon_num + 1        
-
-        if unknown_mon_num != 0:
-            self.mon_db = database.get_pokemon_images(self.session)
-            LOG.info('{} Unknown pokemon in DB'.format(unknown_mon_num))
-            LOG.info('PokemonImages table reloaded : {}'.format(len(self.mon_db)))          
-
     def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
@@ -562,6 +558,7 @@ class RaidNearby:
             LOG.info('File is too old')
             update_raid = False
         if int(gym) > 0 and int(gym) != int(self.not_a_fort_id) and int(gym) != int(self.unknown_fort_id):
+            session = database.Session()
             if egg == True:
                 hatch_time = self.getHatchTime(time_text)
                 if hatch_time == -1:
@@ -576,24 +573,27 @@ class RaidNearby:
                     return False
                 spawn_time = hatch_time - 3600
                 end_time = hatch_time + 2700
-                time_battle = database.get_raid_battle_time(self.session, gym)
+                time_battle = database.get_raid_battle_time(session, gym)
                 LOG.info('Egg: level={} time_text={} gym={} error_gym={} hatch_time={} time_battle={}'.format(level, time_text, gym, error_gym, hatch_time, time_battle))
                 if update_raid == True:
                     if int(time_battle) == int(hatch_time):
                         LOG.info('This Egg is already assigned.')
                     else:
                         try:
-                            database.update_raid_egg(self.session, gym, level, hatch_time)
-                            database.updata_fort_sighting(self.session, gym, unix_time)
+                            database.update_raid_egg(session, gym, level, hatch_time)
+                            database.updata_fort_sighting(session, gym, unix_time)
+                            session.commit()
                             LOG.info('***** New Egg is added. *****')
+                        except KeyboardInterrupt:
+                            sys.exit(1)
                         except:
                             LOG.error('Error to update raid egg for fort:{}'.format(gym))
-                            self.session.rollback()
+                            session.rollback()
                 else:
                     LOG.info('Skip update raid due to old file')
             else:
                 mon_image_id, mon, error_mon = self.detectMon(img_full)
-                pokemon_id = database.get_raid_pokemon_id(self.session, gym)
+                pokemon_id = database.get_raid_pokemon_id(session, gym)
                 if level == -1:
                     LOG.error('level detection failed.')
                     fullpath_dest = str(self.not_find_path) + 'Level_Failed_Fort_' + str(gym) + '_GymImages_' + str(gym_image_id) + '.png'
@@ -606,12 +606,15 @@ class RaidNearby:
                     if int(mon) > 0:
                         if update_raid == True:
                             try:
-                                database.update_raid_mon(self.session, gym, mon)
-                                database.updata_fort_sighting(self.session, gym, unix_time)
+                                database.update_raid_mon(session, gym, mon)
+                                database.updata_fort_sighting(session, gym, unix_time)
+                                session.commit()
                                 LOG.info('!!!!! New raid boss is added. !!!!!')
+                            except KeyboardInterrupt:
+                                sys.exit(1)
                             except:
                                 LOG.error('Error to update raid boss for fort:{}'.format(gym))
-                                self.session.rollback()
+                                session.rollback()
                         else:
                             LOG.info('Skip update raid due to old file')
                     elif int(mon) == 0:
@@ -632,6 +635,7 @@ class RaidNearby:
                 processed_pokemon_name = 'Pokemon_' + str(mon) + '_PokemonImages_' + str(mon_image_id) + '.png'
                 processed_file_dest = str(self.success_img_path) + str(processed_pokemon_name)
                 shutil.copy2(raidfilename, processed_file_dest)
+            session.close()
             processed_gym_name = 'Fort_'+str(gym)+'_GymImages_'+ str(gym_image_id)+'.png'
             processed_file_dest = str(self.success_img_path) + str(processed_gym_name)
             shutil.copy2(raidfilename, processed_file_dest)                
@@ -690,18 +694,21 @@ class RaidNearby:
 
             while True:
                 LOG.debug('Run raid nearby task')
-                self.reloadImagesDB()
                 for fullpath_filename in self.p.glob('*.png'):
                     if process_count > 1 and not int(hashlib.md5(str(fullpath_filename).encode('utf-8')).hexdigest(),
                                                      16) % process_count == id:
                         continue
                     LOG.debug('process {}'.format(fullpath_filename))
+                    time_start = time.time()
                     self.processRaidImage(fullpath_filename)
+                    time_end = time.time()
+                    print('Took {}s'.format(time_end - time_start))
+
                 time.sleep(1)
         except KeyboardInterrupt:
-            self.session.close()
             sys.exit(0)
         except Exception as e:
+            traceback.print_exception(e)
             LOG.error('Unexpected Exception in raidnerby Process: {}'.format(e))
             if raidscan is not None:
                 raidscan.restart_nearby(id)

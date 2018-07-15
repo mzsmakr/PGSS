@@ -8,6 +8,7 @@ CROP_PROCESSES = 1
 ENABLE_FINDFORT = True
 FINDFORT_PROCESSES = 1
 
+POOL_SIZE = 10
 
 ### General Settings ###
 

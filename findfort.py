@@ -57,21 +57,25 @@ class FindFort:
 
             limit_forts = []
 
-            ids_a = db.get_fort_ids_within_range(session, None, 800, device_location_a.lat, device_location_a.lon)
-            for fort_id in ids_a:
-                if fort_id not in limit_forts:
-                    limit_forts.append(fort_id)
-
-            ids_b = db.get_fort_ids_within_range(session, None, 800, device_location_b.lat, device_location_b.lon)
-            for fort_id in ids_b:
-                if fort_id not in limit_forts:
-                    limit_forts.append(fort_id)
-
-            ids_c = db.get_fort_ids_within_range(session, None, 800, device_location_c.lat, device_location_c.lon)
-            if ids_a is not ids_c and ids_b is not ids_c:
-                for fort_id in ids_c:
+            if device_location_a is not None:
+                ids_a = db.get_fort_ids_within_range(session, None, 800, device_location_a.lat, device_location_a.lon)
+                for fort_id in ids_a:
                     if fort_id not in limit_forts:
                         limit_forts.append(fort_id)
+
+            if device_location_b is not None:
+                ids_b = db.get_fort_ids_within_range(session, None, 800, device_location_b.lat, device_location_b.lon)
+                for fort_id in ids_b:
+                    if fort_id not in limit_forts:
+                        limit_forts.append(fort_id)
+
+            if device_location_c is not None:
+                ids_c = db.get_fort_ids_within_range(session, None, 800, device_location_c.lat, device_location_c.lon)
+                if ids_a is not ids_c and ids_b is not ids_c:
+                    for fort_id in ids_c:
+                        if fort_id not in limit_forts:
+                            limit_forts.append(fort_id)
+
             LOG.debug('Matching with gyms: {}'.format(limit_forts))
         else:
             LOG.debug('Matching without location')
@@ -123,6 +127,8 @@ class FindFort:
                 if gym_image_fort_id == unknown_fort_id:
                     try:
                         db.update_gym_image(session,gym_image_id,max_fort_id)
+                    except KeyboardInterrupt:
+                        sys.exit(1)
                     except:
                         LOG.error('Error to update gym_images for gym_images.id:{} gym_images.fort_id:{}'.format(gym_image_id,max_fort_id))
                         fort_result_file = os.getcwd() + '/success_img/Fort_' + str(max_fort_id) + '_GymImages_' + str(gym_image_id) + '_' + '{:.3f}'.format(max_value) + '.png'
@@ -187,8 +193,6 @@ class FindFort:
 
             p = Path(self.unknown_image_path)
 
-            session = db.Session()
-
             process_count = self.config.FINDFORT_PROCESSES
             while True:
                 LOG.debug('Run find fort task')
@@ -198,7 +202,9 @@ class FindFort:
                                                      16) % process_count == id:
                         continue
                     new_img_count = new_img_count+1
+                    session = db.Session()
                     self.run_fortmatching(session, fort_fullpath_filename)
+                    session.close()
                 if new_img_count != 0:
                     LOG.info('{} new fort image processed'.format(new_img_count))
                 else:

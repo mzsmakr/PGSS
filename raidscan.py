@@ -93,8 +93,10 @@ class RaidScan:
         time.sleep(1)
         try:
             raid_nearby = raidnearby.RaidNearby()
-        except:
-            LOG.error('Failed to init RaidNearby')
+        except KeyboardInterrupt:
+            sys.exit(1)
+        except Exception as e:
+            LOG.error('Failed to init RaidNearby: {}'.format(e))
             self.restart_nearby(id)
             return
         rn_process = Process(target=raid_nearby.main, args=(self,id,))
@@ -104,8 +106,10 @@ class RaidScan:
         time.sleep(1)
         try:
             find_fort = findfort.FindFort()
-            LOG.error('Failed to init FindFort')
-        except:
+        except KeyboardInterrupt:
+            sys.exit(1)
+        except Exception as e:
+            LOG.error('Failed to init FindFort: {}'.format(e))
             self.restart_findfort(id)
             return
         ff_process = Process(target=find_fort.findfort_main, args=(self,id,))
@@ -115,8 +119,10 @@ class RaidScan:
         time.sleep(1)
         try:
             device_controller = devicecontroller.DeviceController(self.all_forts_inside, self.config.DEVICE_LIST)
-        except:
-            LOG.error('Failed to init DeviceController')
+        except KeyboardInterrupt:
+            sys.exit(1)
+        except Exception as e:
+            LOG.error('Failed to init DeviceController: {}'.format(e))
             self.restart_devicecontroller()
             return
         dc_process = Process(target=device_controller.devicecontroller_main, args=(self,))

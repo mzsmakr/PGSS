@@ -7,7 +7,7 @@ import time
 from sqlalchemy import create_engine, Column, Boolean, Integer, String, Float, SmallInteger, \
         BigInteger, ForeignKey, Index, UniqueConstraint, \
         create_engine, cast, func, desc, asc, desc, and_, exists
-from sqlalchemy.orm import sessionmaker, relationship, eagerload, foreign, remote
+from sqlalchemy.orm import sessionmaker, relationship, eagerload, foreign, remote, scoped_session
 from sqlalchemy.types import TypeDecorator, Numeric, Text, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.exc import NoResultFound
@@ -15,7 +15,6 @@ from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, I
 from geopy.distance import vincenty
 from sys import argv
 import importlib
-
 LOG = getLogger('')
 
 if len(argv) >= 2:
@@ -34,6 +33,8 @@ class DBCacheFortIdsWithinRange:
 class DBCache:
 
     fort_ids_within_range = []
+    unknown_fort_id = None
+    not_a_fort_id = None
 
 if config.DB_ENGINE.startswith('mysql'):
     from sqlalchemy.dialects.mysql import TINYINT, MEDIUMINT, BIGINT, DOUBLE, LONGTEXT
@@ -92,7 +93,7 @@ else:
     FLOAT_TYPE = Float(asdecimal=False)
 
 Base = declarative_base()
-engine = create_engine(config.DB_ENGINE, pool_recycle=3600)
+engine = create_engine(config.DB_ENGINE, pool_recycle=150, pool_size=config.POOL_SIZE, pool_pre_ping=True)
 
 class Fort(Base):
     __tablename__ = 'forts'
@@ -197,16 +198,17 @@ Session = sessionmaker(bind=engine)
 
 def get_gym_images(session):
     gym_images = session.query(GymImage).all()
-    session.commit()
     return gym_images
 
 def get_pokemon_images(session):
     pokemon_images = session.query(PokemonImage).all()
-    session.commit()
     return pokemon_images
 
 unknown_fort_name = 'UNKNOWN FORT'
 def get_unknown_fort_id(session):
+    if DBCache.unknown_fort_id is not None:
+        return DBCache.unknown_fort_id
+
     unknown_fort = session.query(Fort).filter_by(name=unknown_fort_name).first()
     session.commit()
     # Check UNKNOWN FORT existance if not, add
@@ -215,10 +217,15 @@ def get_unknown_fort_id(session):
         session.commit()
         unknown_fort = session.query(Fort).filter_by(name=unknown_fort_name).first()
         session.commit()
-    return unknown_fort.id
+
+    DBCache.unknown_fort_id = unknown_fort.id
+    return DBCache.unknown_fort_id
 
 not_a_fort_name = 'NOT A FORT'
 def get_not_a_fort_id(session):
+    if DBCache.not_a_fort_id is not None:
+        return DBCache.not_a_fort_id
+
     not_a_fort = session.query(Fort).filter_by(name=not_a_fort_name).first()
     session.commit()
     # Check NOT A FORT existance if not, add
@@ -226,27 +233,28 @@ def get_not_a_fort_id(session):
         session.add(Fort(name=not_a_fort_name))
         session.commit()
         not_a_fort = session.query(Fort).filter_by(name=not_a_fort_name).first()
-    return not_a_fort.id
+    DBCache.not_a_fort_id = not_a_fort.id
+    return DBCache.not_a_fort_id
 
 def get_raid_battle_time(session, fort_id):
-    raid = session.query(Raid).filter(Raid.fort_id == str(fort_id)).first()
+    raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     session.commit()
     if raid is None:
         session.add(Raid(fort_id=fort_id))
         session.commit()
-        raid = session.query(Raid).filter(Raid.fort_id == str(fort_id)).first()
+        raid = session.query(Raid).filter_by(fort_id=fort_id).first()
         raid.time_battle = 0
     if raid.time_battle is None:
         raid.time_battle = 0
     return raid.time_battle
 
 def get_raid_pokemon_id(session, fort_id):
-    raid = session.query(Raid).filter(Raid.fort_id == str(fort_id)).first()
+    raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     session.commit()
     if raid is None:
         session.add(Raid(fort_id = str(fort_id)))
         session.commit()
-        raid = session.query(Raid).filter(Raid.fort_id == str(fort_id)).first()
+        raid = session.query(Raid).filter_by(fort_id=fort_id).first()
         raid.pokemon_id = -1
     if raid.pokemon_id is None:
         raid.pokemon_id = -1
@@ -272,24 +280,20 @@ def update_raid_mon(session, fort_id, pokemon_id):
     raid = session.query(Raid).filter_by(fort_id=str(fort_id)).first()
     if raid is None:
         session.add(Raid(fort_id = str(fort_id)))
-        session.commit()
-        raid = session.query(Raid).filter_by(fort_id=str(fort_id)).first()        
+        raid = session.query(Raid).filter_by(fort_id=str(fort_id)).first()
     raid.pokemon_id = int(pokemon_id)
     raid.move_1 = 133
     raid.move_2 = 133
     raid.cp = 0
-    session.commit()
-    
+
 def updata_fort_sighting(session, fort_id, unix_time):
     fort_sighting = session.query(FortSighting).filter_by(fort_id=str(fort_id)).first()
     if fort_sighting is None:
         session.add(FortSighting(fort_id = str(fort_id), team =  int(0), last_modified = int(unix_time), updated = int(unix_time)))
-        session.commit()
-        fort_sighting = session.query(FortSighting).filter_by(fort_id=str(fort_id)).first()            
+        fort_sighting = session.query(FortSighting).filter_by(fort_id=str(fort_id)).first()
     fort_sighting.updated = int(unix_time)
     fort_sighting.last_modified = int(unix_time)
     fort_sighting.team = int(0)
-    session.commit()
 
 def add_gym_image(session,fort_id,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2):
     session.add(GymImage(fort_id=fort_id,param_1=top_mean0,param_2=top_mean1,param_3=top_mean2,param_4=left_mean0,param_5=left_mean1,param_6=left_mean2,created=int(datetime.datetime.now().timestamp())))

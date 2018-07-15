@@ -39,7 +39,6 @@ class DeviceController:
         self.forts = forts
         self.locked_forts = []
         self.devices = devices
-        self.session = database.Session()
         self.ui_test_tasts = []
         self.last_lat = 0
         self.last_lon = 0
@@ -74,7 +73,9 @@ class DeviceController:
         while True:
             try:
                 LOG.info('Deleting old device location history')
-                database.delete_old_device_location_history(self.session)
+                session = database.Session()
+                database.delete_old_device_location_history(session)
+                session.close()
             except KeyboardInterrupt:
                 sys.exit(0)
             except:
@@ -82,7 +83,7 @@ class DeviceController:
             time.sleep(600)
 
 
-    def teleport(self, device, lat, lon):
+    def teleport(self, device, lat, lon, session):
         FNULL = open(os.devnull, 'w')
         if lat < 0:
             lat_str = '-- {}'.format(lat)
@@ -104,11 +105,13 @@ class DeviceController:
 
         self.last_lon = lon
         self.last_lat = lat
-        database.add_device_location_history(self.session, device, time.time(), lat, lon)
+        database.add_device_location_history(session, device, time.time(), lat, lon)
 
     def update_device_locations(self):
         LOG.debug('Running device controller task')
-        raids = database.get_raids_for_forts(self.session, self.forts)
+        session = database.Session()
+        raids = database.get_raids_for_forts(session, self.forts)
+        session.close()
 
         for fort_time in self.locked_forts:
             if fort_time.time <= time.time():
@@ -142,9 +145,11 @@ class DeviceController:
                 random.shuffle(forts_no_raid)
                 fort = forts_no_raid.pop()
 
+            session = database.Session()
             if fort is not None:
                 self.locked_forts.append(FortTime(fort, time.time() + 120))
-                self.teleport(device, fort.lat, fort.lon)
+                self.teleport(device, fort.lat, fort.lon, session)
+            session.close()
 
     def devicecontroller_main(self, raidscan):
 
