@@ -698,11 +698,7 @@ class RaidNearby:
                                                      16) % process_count == id:
                         continue
                     LOG.debug('process {}'.format(fullpath_filename))
-                    time_start = time.time()
                     self.processRaidImage(fullpath_filename)
-                    time_end = time.time()
-                    print('Took {}s'.format(time_end - time_start))
-
                 time.sleep(1)
         except KeyboardInterrupt:
             sys.exit(0)
