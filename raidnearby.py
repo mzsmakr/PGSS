@@ -12,6 +12,7 @@ import datetime
 from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, CRITICAL, Formatter, handlers
 import time
 import database
+from multiprocessing import Process
 import asyncio
 import re
 
@@ -43,17 +44,12 @@ rfh.setLevel(CRITICAL)
 rfh.setFormatter(logFormatter)
 LOG.addHandler(rfh)
 
-LOG.info('Pokemon Screenshot Raid Scan Started')
-
-def exception_handler(loop, context):
-    loop.default_exception_handler(context)
-    exception = context.get('exception')
-    if isinstance(exception, Exception):
-        LOG.error("Found unhandeled exception. Stoping...")
-        loop.stop()
 
 class RaidNearby:
     def __init__(self):
+
+        LOG.info('Pokemon Screenshot Raid Scan Started')
+
         self.process_img_path = os.getcwd() + '/process_img/'
         self.copy_path = os.getcwd() + '/unknown_img/'
         self.not_find_path = os.getcwd() + '/not_find_img/'
@@ -262,7 +258,7 @@ class RaidNearby:
         left_mean0 = int(cropLeft[:,:,0].mean())
         left_mean1 = int(cropLeft[:,:,1].mean())
         left_mean2 = int(cropLeft[:,:,2].mean())
-        print('gym image param:',top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
+        LOG.debug('gym image param: {} {} {} {} {} {}'.format(top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2))
         gym_image_id = database.get_gym_image_id(self.session,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
         return gym_image_id
 
@@ -404,7 +400,7 @@ class RaidNearby:
         mean6 = int(crop6.mean())
         mean7 = int(crop7.mean())
 
-        print('pokemon image param:',mean1,mean2,mean3,mean4,mean5,mean6,mean7)
+        LOG.debug('pokemon image param: {} {} {} {} {} {} {}'.format(mean1,mean2,mean3,mean4,mean5,mean6,mean7))
         pokemon_image_id = database.get_pokemon_image_id(self.session,mean1,mean2,mean3,mean4,mean5,mean6,mean7)
         return pokemon_image_id
 
@@ -489,7 +485,7 @@ class RaidNearby:
             ret = False
         return ret
 
-    async def reloadImagesDB(self):
+    def reloadImagesDB(self):
         unknown_gym_num = 0
         for gym in self.gym_db:
             if int(gym.fort_id) == int(self.unknown_fort_id):
@@ -509,14 +505,14 @@ class RaidNearby:
             LOG.info('{} Unknown pokemon in DB'.format(unknown_mon_num))
             LOG.info('PokemonImages table reloaded : {}'.format(len(self.mon_db)))          
 
-    async def processRaidImage(self, raidfilename):
+    def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
         
         if img_full is None:
             return False
         
-        filename_no_ext, ext = os.path.splitext(filename) 
+        filename_no_ext, ext = os.path.splitext(filename)
 
         now = datetime.datetime.now()
         unix_time = int(now.timestamp())
@@ -638,14 +634,28 @@ class RaidNearby:
             LOG.debug('unknown fort id:{}'.format(self.unknown_fort_id))
             LOG.debug('    gym fort id:{}'.format(gym))
             LOG.info('Gym image params are in database but the Gym is not known. Fort_id:{}'.format(gym))
-            unknown_gym_name = 'GymImage_'+str(gym_image_id)+'.png'
+
+            parts = str(filename_no_ext).split('_')
+            if len(parts) >= 3:
+                detect_help_string = '_{}_{}'.format(parts[0],parts[1])
+            else:
+                detect_help_string = ''
+
+            unknown_gym_name = 'GymImage_'+str(gym_image_id)+str(detect_help_string)+'.png'
             fullpath_dest = str(self.copy_path) + str(unknown_gym_name)
             LOG.info(fullpath_dest)
             shutil.copy2(raidfilename,fullpath_dest)
         elif int(gym) == -1 and egg == True: # int(gym) < 0
             # Send gym image for training directory
             LOG.info('New unknown gym with egg. Send to unknown_img to find Gym.')
-            unknown_gym_name = 'GymImage_'+str(gym_image_id)+'.png'
+
+            parts = str(filename_no_ext).split('_')
+            if len(parts) >= 3:
+                detect_help_string = '_{}_{}'.format(parts[0],parts[1])
+            else:
+                detect_help_string = ''
+
+            unknown_gym_name = 'GymImage_'+str(gym_image_id)+detect_help_string+'.png'
             fullpath_dest = str(self.copy_path) + str(unknown_gym_name)
             LOG.info(fullpath_dest)
             shutil.copy2(raidfilename,fullpath_dest)
@@ -662,25 +672,24 @@ class RaidNearby:
         #cv2.waitKey(0)
         return True
 
-    async def main(self):
-        LOG.debug('Unknown fort id: {}'.format(self.unknown_fort_id))
-        LOG.debug('Not a fort id: {}'.format(self.not_a_fort_id))
-        
-        while True:
-            await self.reloadImagesDB()
-            for fullpath_filename in self.p.glob('*.png'):
-                LOG.debug('process {}'.format(fullpath_filename))
-                await self.processRaidImage(fullpath_filename)
-                await asyncio.sleep(0.1)
-            await asyncio.sleep(1)
-        self.session.close()
+    def main(self, raidscan):
+        try:
+            LOG.debug('Unknown fort id: {}'.format(self.unknown_fort_id))
+            LOG.debug('Not a fort id: {}'.format(self.not_a_fort_id))
 
-if __name__ == '__main__':
-    raid_nearby = RaidNearby()
-    loop = asyncio.get_event_loop()
-    loop.set_exception_handler(exception_handler)
-    loop.create_task(raid_nearby.main())
-    loop.run_forever()
-    loop.close()
-
-
+            while True:
+                LOG.info('Run raid nearby task')
+                self.reloadImagesDB()
+                for fullpath_filename in self.p.glob('*.png'):
+                    LOG.debug('process {}'.format(fullpath_filename))
+                    self.processRaidImage(fullpath_filename)
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.session.close()
+            sys.exit(0)
+        except Exception as e:
+            LOG.error('Unexpected Exception in raidnerby Process: {}'.format(e))
+            if raidscan is not None:
+                raidscan.restart_nearby()
+            else:
+                sys.exit(1)

@@ -4,15 +4,23 @@ from pathlib import Path
 import os
 import time
 from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, Formatter
-from config import SCREENSHOT_SAVE_PATH, RAID_NEARBY_SIZE
 import asyncio
 import shutil
 import math
 import raidnearby
+from multiprocessing import Process
 #import pdb; pdb.set_trace()
+import sys
+from sys import argv
+import importlib
+
+if len(argv) >= 2:
+    config = importlib.import_module(str(argv[1]))
+else:
+    config = importlib.import_module('config')
 
 LOG = getLogger('')
-screenshot_path = Path(SCREENSHOT_SAVE_PATH)
+screenshot_path = Path(config.SCREENSHOT_SAVE_PATH)
 crop_save_path = os.getcwd() + '/process_img/'
 not_find_path = os.getcwd() + '/not_find_img/'
 web_server_path = os.getcwd()+'/webserver/'
@@ -44,7 +52,7 @@ last_crop5 = np.zeros((10, 10, 3), np.uint8)
 last_crop6 = np.zeros((10, 10, 3), np.uint8)
 diff_threshold = 10000
 
-async def crop_img(fullpath_filename):
+def crop_img(fullpath_filename):
     global init_crop_py
     global last_crop1
     global last_crop2
@@ -58,12 +66,12 @@ async def crop_img(fullpath_filename):
 
     if img is not None:
         if img.dtype == 'uint16':
-            print('16 bit image')
+            #print('16 bit image')
             img = (img / 256).astype('uint8')
             
         height, width, channels = img.shape
         find_size_config = False
-        for size in RAID_NEARBY_SIZE:
+        for size in config.RAID_NEARBY_SIZE:
             if width == size['width'] and height == size['height']:
                 find_size_config = True
                 LOG.debug('ext = {}'.format(ext))
@@ -180,34 +188,24 @@ async def crop_img(fullpath_filename):
         save_file_path = web_server_path+'screenshot.jpg'
         cv2.imwrite(save_file_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
         os.remove(fullpath_filename)
-        await asyncio.sleep(0.1) 
+        time.sleep(0.1)
     
 
-async def crop_task():
-    LOG.info('Crop screenshot task started')
-    LOG.info('Screenshot path:{}'.format(screenshot_path))
-    while True:
-        for fullpath_filename in screenshot_path.glob('*.jpg'):
-            await crop_img(fullpath_filename)
-        for fullpath_filename in screenshot_path.glob('*.png'):
-            await crop_img(fullpath_filename)
-        await asyncio.sleep(0.2) # task runs every 0.2 seconds
-
-def exception_handler(loop, context):
-    loop.default_exception_handler(context)
-    exception = context.get('exception')
-    if isinstance(exception, Exception):
-        LOG.error("Found unhandeled exception. Stoping...")
-        loop.stop()
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.set_exception_handler(exception_handler)
-    loop.create_task(crop_task())
-    loop.run_forever()
-    loop.close()
-
-
-
-
-
+def crop_task(raidscan):
+    try:
+        LOG.info('Crop screenshot task started')
+        LOG.info('Screenshot path:{}'.format(screenshot_path))
+        while True:
+            for fullpath_filename in screenshot_path.glob('*.jpg'):
+                crop_img(fullpath_filename)
+            for fullpath_filename in screenshot_path.glob('*.png'):
+                crop_img(fullpath_filename)
+            time.sleep(0.01) # task runs every 0.01 seconds
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except Exception as e:
+        LOG.error('Unexpected Exception in crop Process: {}'.format(e))
+        if raidscan is not None:
+            raidscan.restart_crop()
+        else:
+            sys.exit(1)

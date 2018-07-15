@@ -1,16 +1,26 @@
 import sys
+from sys import argv
 import requests
 import shutil
 import database
 import os
 import time
-from config import MAP_START, MAP_END
+import importlib
 
 url_image_path = os.getcwd() + '/url_img/'
 
 session = database.Session()
 
+if len(argv) >= 2:
+    config = importlib.import_module(str(argv[1]))
+else:
+    config = importlib.import_module('config')
+
 def download_img(url, file_name):
+    file_path = os.path.dirname(url_image_path)
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+
     retry = 1
     while retry <= 5:
         try:
@@ -34,17 +44,14 @@ def download_img(url, file_name):
 
 def main():
     check_boundary = True
-    if (MAP_START[0] == 0 and MAP_START[1] == 0) or (MAP_END[0] == 0 and MAP_END[1] == 0):
+    if (config.MAP_START[0] == 0 and config.MAP_START[1] == 0) or (config.MAP_END[0] == 0 and config.MAP_END[1] == 0):
         check_boundary = False
     else:
         north = max(MAP_START[0], MAP_END[0])
         south = min(MAP_START[0], MAP_END[0])
         east = max(MAP_START[1], MAP_END[1])
         west = min(MAP_START[1], MAP_END[1])
-        
-    file_path = os.path.dirname(url_image_path)
-    if not os.path.exists(file_path):
-        os.makedirs(file_path)
+
     all_forts = [fort for fort in database.get_forts(session)]
     print('{} forts find in database. Start downloading.'.format(len(all_forts)))
     for fort in all_forts:

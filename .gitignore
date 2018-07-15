@@ -1,0 +1,13 @@
+config.py
+.DS_Store
+.idea/
+DerivedData/
+__pycache__/
+logs/
+not_find_img/
+process_img/
+success_img/
+time.png
+unknown_img/
+url_img/
+webserver/screenshot.jpg

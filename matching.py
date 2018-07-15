@@ -42,7 +42,7 @@ def fort_image_matching(url_img_name, fort_img_name):
         dif_x = abs(ui_center_x - fi_center_x)
         dif_y = abs(ui_center_y - fi_center_y)
 
-        if dif_x > 5 or dif_y >5:
+        if dif_x > 5 or dif_y > 5:
             return 0.0
     else: # for png file
         scale = float(width/(144-74))
@@ -99,7 +99,7 @@ def fort_image_matching_imshow(url_img_name, fort_img_name):
  
     dif_x = abs(ui_center_x - fi_center_x)
     dif_y = abs(ui_center_y - fi_center_y)    
-    print(dif_x, dif_y)
+    #print(dif_x, dif_y)
     
     top_left = max_loc3
     height, width, channels = crop.shape
@@ -116,15 +116,3 @@ def fort_image_matching_imshow(url_img_name, fort_img_name):
         return 0.0   
 
     return max_val3
-
-
-if __name__ == '__main__':
-    fort_id = 1
-    url_img_path = os.getcwd() + '/success_img/Fort_' + str(fort_id) + '_url.jpg'
-    fort_img_path = os.getcwd() + '/success_img/Fort_' + str(fort_id) + '.png'
-    url_img_path = '454.jpg'
-    fort_img_path = 'GymImage_1.png'
-    print(url_img_path)
-    print(fort_img_path)
-    print(fort_image_matching_imshow(url_img_path,fort_img_path))
-

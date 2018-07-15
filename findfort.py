@@ -8,14 +8,24 @@ import matching as mt
 import database as db
 import raidnearby as rs
 import time
+import math
 from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, Formatter
+from multiprocessing import Process
 import asyncio
 import math
+from sys import argv
+import importlib
 
 LOG = getLogger('')
 
 class FindFort:
     def __init__(self):
+
+        if len(argv) >= 2:
+            self.config = importlib.import_module(str(argv[1]))
+        else:
+            self.config = importlib.import_module('config')
+
         self.unknown_image_path = os.getcwd() + '/unknown_img'
         self.url_image_path = os.getcwd() + '/url_img'
 
@@ -24,16 +34,57 @@ class FindFort:
         self.not_find_img_pth = os.getcwd() + '/not_find_img/'
         self.raidnearby = rs.RaidNearby()
 
-    async def run_fortmatching(self, session, fort_fullpath_filename):
+    def run_fortmatching(self, session, fort_fullpath_filename):
         p_url = Path(self.url_image_path)
         fort_filename = os.path.basename(fort_fullpath_filename)
         LOG.info('find fort for {}'.format(fort_filename))
         max_fort_id = 0
         max_value = 0.0
-        max_url_fullpath_filename = '' 
-        for url_fullpath_filename in p_url.glob('*'):
+        max_url_fullpath_filename = ''
+
+        parts = str(fort_filename.replace('.jpg', '').replace('.png', '')).split('_')
+
+        if len(parts) >= 3:
+            device = parts[len(parts) - 2]
+            time = int(parts[len(parts) - 1])
+            time_a = math.floor(time - (self.config.TELEPORT_DELEAY / 2))
+            time_b = math.ceil(time + (self.config.TELEPORT_DELEAY / 2))
+
+            device_location_a = db.get_device_location_history(session, time_a, device)
+            device_location_b = db.get_device_location_history(session, time_b, device)
+            device_location_c = db.get_device_location_history(session, time, device)
+
+            limit_forts = []
+
+            ids_a = db.get_fort_ids_within_range(session, None, 800, device_location_a.lat, device_location_a.lon)
+            for fort_id in ids_a:
+                if fort_id not in limit_forts:
+                    limit_forts.append(fort_id)
+
+            ids_b = db.get_fort_ids_within_range(session, None, 800, device_location_b.lat, device_location_b.lon)
+            for fort_id in ids_b:
+                if fort_id not in limit_forts:
+                    limit_forts.append(fort_id)
+
+            ids_c = db.get_fort_ids_within_range(session, None, 800, device_location_c.lat, device_location_c.lon)
+            if ids_a is not ids_c and ids_b is not ids_c:
+                for fort_id in ids_c:
+                    if fort_id not in limit_forts:
+                        limit_forts.append(fort_id)
+            LOG.debug('Matching with gyms: {}'.format(limit_forts))
+        else:
+            LOG.debug('Matching without location')
+            limit_forts = None
+
+        for url_fullpath_filename in p_url.glob('*.jpg'):
+
             url_filename = os.path.basename(url_fullpath_filename)
             url_filename, url_filename_ext = os.path.splitext(url_filename)
+
+            if limit_forts is not None and len(limit_forts) != 0:
+                if int(url_filename) not in limit_forts:
+                    continue
+
             if url_filename_ext == '.jpg' or url_filename_ext == '.png':
                 try:
                     result = mt.fort_image_matching(str(url_fullpath_filename), str(fort_fullpath_filename))
@@ -111,60 +162,46 @@ class FindFort:
             LOG.info('Can not find fort: {}, check the image in not_find_img'.format(max_fort_id))
     
 
-    async def findfort_main(self):
-        # Check directories 
-        file_path = os.path.dirname(self.url_image_path+'/')
-        if not os.path.exists(file_path):
-            LOG.error('Cannot find url_img directory. Run downloadfortimg.py')
-            LOG.error('to create the directory and download fort images')
-            return
+    def findfort_main(self, raidscan):
+        try:
+            # Check directories
+            file_path = os.path.dirname(self.url_image_path+'/')
+            if not os.path.exists(file_path):
+                LOG.error('Cannot find url_img directory. Run downloadfortimg.py')
+                LOG.error('to create the directory and download fort images')
+                return
 
-        # Create directories if not exists
-        file_path = os.path.dirname(self.success_img_path)
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-        file_path = os.path.dirname(self.need_check_img_path)
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-        file_path = os.path.dirname(self.not_find_img_pth)
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
+            # Create directories if not exists
+            file_path = os.path.dirname(self.success_img_path)
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
+            file_path = os.path.dirname(self.need_check_img_path)
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
+            file_path = os.path.dirname(self.not_find_img_pth)
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
 
-        p = Path(self.unknown_image_path)
+            p = Path(self.unknown_image_path)
 
-        while True:
-            LOG.debug('Run find fort task')
             session = db.Session()
-            new_img_count = 0
-            for fort_fullpath_filename in p.glob('GymImage*.png'):
-                new_img_count = new_img_count+1
-                await self.run_fortmatching(session, fort_fullpath_filename)
-                await asyncio.sleep(0.1) 
-            if new_img_count != 0:
-                LOG.info('{} new fort image processed'.format(new_img_count))
-            else:
-                LOG.debug('{} new fort image processed'.format(new_img_count))
+            while True:
+                LOG.info('Run find fort task')
+                new_img_count = 0
+                for fort_fullpath_filename in p.glob('GymImage*.png'):
+                    new_img_count = new_img_count+1
+                    self.run_fortmatching(session, fort_fullpath_filename)
+                if new_img_count != 0:
+                    LOG.info('{} new fort image processed'.format(new_img_count))
+                else:
+                    LOG.debug('{} new fort image processed'.format(new_img_count))
+                time.sleep(1)
+        except KeyboardInterrupt:
             session.close()
-            await asyncio.sleep(10)
-            
-        LOG.info('Done')
-        return
-    
-def exception_handler(loop, context):
-    loop.default_exception_handler(context)
-    exception = context.get('exception')
-    if isinstance(exception, Exception):
-        LOG.error("Found unhandeled exception. Stoping...")
-        loop.stop()
-
-if __name__ == '__main__':
-    find_fort = FindFort()
-    loop = asyncio.get_event_loop()
-    loop.set_exception_handler(exception_handler)
-    loop.create_task(find_fort.findfort_main())
-    loop.run_forever()
-    loop.close()                    
-                    
-                    
-            
-                
+            sys.exit(0)
+        except Exception as e:
+            LOG.error('Unexpected Exception in findfort Process: {}'.format(e))
+            if raidscan is not None:
+                raidscan.restart_findfort()
+            else:
+                sys.exit(1)
