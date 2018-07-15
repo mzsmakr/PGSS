@@ -15,7 +15,6 @@ import database
 from multiprocessing import Process
 import asyncio
 import re
-import traceback
 from sys import argv
 import importlib
 import hashlib
@@ -708,7 +707,6 @@ class RaidNearby:
         except KeyboardInterrupt:
             sys.exit(0)
         except Exception as e:
-            traceback.print_exception(e)
             LOG.error('Unexpected Exception in raidnerby Process: {}'.format(e))
             if raidscan is not None:
                 raidscan.restart_nearby(id)
