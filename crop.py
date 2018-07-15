@@ -13,6 +13,7 @@ from multiprocessing import Process
 import sys
 from sys import argv
 import importlib
+import hashlib
 
 if len(argv) >= 2:
     config = importlib.import_module(str(argv[1]))
@@ -191,21 +192,26 @@ def crop_img(fullpath_filename):
         time.sleep(0.1)
     
 
-def crop_task(raidscan):
+def crop_task(raidscan,id):
     try:
-        LOG.info('Crop screenshot task started')
-        LOG.info('Screenshot path:{}'.format(screenshot_path))
+        LOG.info('Crop screenshot task started for process {}'.format(id+1))
+        LOG.debug('Screenshot path:{}'.format(screenshot_path))
+        process_count = config.CROP_PROCESSES
         while True:
             for fullpath_filename in screenshot_path.glob('*.jpg'):
+                if process_count > 1 and not int(hashlib.md5(str(fullpath_filename).encode('utf-8')).hexdigest(), 16) % process_count == id:
+                    continue
                 crop_img(fullpath_filename)
             for fullpath_filename in screenshot_path.glob('*.png'):
+                if process_count > 1 and not int(hashlib.md5(str(fullpath_filename).encode('utf-8')).hexdigest(), 16) % process_count == id:
+                    continue
                 crop_img(fullpath_filename)
-            time.sleep(0.01) # task runs every 0.01 seconds
+            time.sleep(0.1) # task runs every 0.1 seconds
     except KeyboardInterrupt:
         sys.exit(0)
     except Exception as e:
         LOG.error('Unexpected Exception in crop Process: {}'.format(e))
         if raidscan is not None:
-            raidscan.restart_crop()
+            raidscan.restart_crop(id)
         else:
             sys.exit(1)

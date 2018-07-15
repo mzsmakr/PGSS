@@ -73,38 +73,42 @@ class RaidScan:
             time.sleep(1)
 
         if self.config.ENABLE_NEARBY:
-            self.restart_nearby()
+            for i in range(self.config.NEARBY_PROCESSES):
+                self.restart_nearby(i)
         if self.config.ENABLE_CROP:
-            self.restart_crop()
+            for i in range(self.config.CROP_PROCESSES):
+                self.restart_crop(i)
         if self.config.ENABLE_FINDFORT:
-            self.restart_findfort()
+            for i in range(self.config.FINDFORT_PROCESSES):
+                self.restart_findfort(i)
         if self.config.ENABLE_CONTROL and self.config.SCAN_AREA is not None and self.config.DEVICE_LIST is not None:
             self.restart_devicecontroller()
 
-    def restart_crop(self):
-        crop_process = Process(target=crop.crop_task, args=(self,))
+    def restart_crop(self, id):
+        time.sleep(1)
+        crop_process = Process(target=crop.crop_task, args=(self,id,))
         crop_process.start()
 
-    def restart_nearby(self):
+    def restart_nearby(self, id):
         time.sleep(1)
         try:
             raid_nearby = raidnearby.RaidNearby()
         except:
             LOG.error('Failed to init RaidNearby')
-            self.restart_nearby()
+            self.restart_nearby(id)
             return
-        rn_process = Process(target=raid_nearby.main, args=(self,))
+        rn_process = Process(target=raid_nearby.main, args=(self,id,))
         rn_process.start()
 
-    def restart_findfort(self):
+    def restart_findfort(self, id):
         time.sleep(1)
         try:
             find_fort = findfort.FindFort()
             LOG.error('Failed to init FindFort')
         except:
-            self.restart_findfort()
+            self.restart_findfort(id)
             return
-        ff_process = Process(target=find_fort.findfort_main, args=(self,))
+        ff_process = Process(target=find_fort.findfort_main, args=(self,id,))
         ff_process.start()
 
     def restart_devicecontroller(self):

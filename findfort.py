@@ -15,6 +15,7 @@ import asyncio
 import math
 from sys import argv
 import importlib
+import hashlib
 
 LOG = getLogger('')
 
@@ -162,8 +163,10 @@ class FindFort:
             LOG.info('Can not find fort: {}, check the image in not_find_img'.format(max_fort_id))
     
 
-    def findfort_main(self, raidscan):
+    def findfort_main(self, raidscan, id):
         try:
+            LOG.info('Find fort task started for process {}'.format(id + 1))
+
             # Check directories
             file_path = os.path.dirname(self.url_image_path+'/')
             if not os.path.exists(file_path):
@@ -185,10 +188,15 @@ class FindFort:
             p = Path(self.unknown_image_path)
 
             session = db.Session()
+
+            process_count = self.config.FINDFORT_PROCESSES
             while True:
-                LOG.info('Run find fort task')
+                LOG.debug('Run find fort task')
                 new_img_count = 0
                 for fort_fullpath_filename in p.glob('GymImage*.png'):
+                    if process_count > 1 and not int(hashlib.md5(str(fort_fullpath_filename).encode('utf-8')).hexdigest(),
+                                                     16) % process_count == id:
+                        continue
                     new_img_count = new_img_count+1
                     self.run_fortmatching(session, fort_fullpath_filename)
                 if new_img_count != 0:
@@ -202,6 +210,6 @@ class FindFort:
         except Exception as e:
             LOG.error('Unexpected Exception in findfort Process: {}'.format(e))
             if raidscan is not None:
-                raidscan.restart_findfort()
+                raidscan.restart_findfort(id)
             else:
                 sys.exit(1)

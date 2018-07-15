@@ -15,6 +15,9 @@ import database
 from multiprocessing import Process
 import asyncio
 import re
+from sys import argv
+import importlib
+import hashlib
 
 logpath = os.getcwd()+'/logs/'
 log_path = os.path.dirname(logpath)
@@ -47,6 +50,11 @@ LOG.addHandler(rfh)
 
 class RaidNearby:
     def __init__(self):
+
+        if len(argv) >= 2:
+            self.config = importlib.import_module(str(argv[1]))
+        else:
+            self.config = importlib.import_module('config')
 
         LOG.info('Pokemon Screenshot Raid Scan Started')
 
@@ -672,15 +680,21 @@ class RaidNearby:
         #cv2.waitKey(0)
         return True
 
-    def main(self, raidscan):
+    def main(self, raidscan, id):
         try:
+
+            LOG.info('Raid nearby task started for process {}'.format(id + 1))
             LOG.debug('Unknown fort id: {}'.format(self.unknown_fort_id))
             LOG.debug('Not a fort id: {}'.format(self.not_a_fort_id))
+            process_count = self.config.NEARBY_PROCESSES
 
             while True:
-                LOG.info('Run raid nearby task')
+                LOG.debug('Run raid nearby task')
                 self.reloadImagesDB()
                 for fullpath_filename in self.p.glob('*.png'):
+                    if process_count > 1 and not int(hashlib.md5(str(fullpath_filename).encode('utf-8')).hexdigest(),
+                                                     16) % process_count == id:
+                        continue
                     LOG.debug('process {}'.format(fullpath_filename))
                     self.processRaidImage(fullpath_filename)
                 time.sleep(1)
@@ -690,6 +704,6 @@ class RaidNearby:
         except Exception as e:
             LOG.error('Unexpected Exception in raidnerby Process: {}'.format(e))
             if raidscan is not None:
-                raidscan.restart_nearby()
+                raidscan.restart_nearby(id)
             else:
                 sys.exit(1)
