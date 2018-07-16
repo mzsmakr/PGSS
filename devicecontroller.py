@@ -10,6 +10,7 @@ from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, I
 import importlib
 from sys import argv
 from geopy.distance import vincenty
+from time import localtime, strftime
 
 LOG = getLogger('')
 
@@ -42,6 +43,11 @@ class DeviceController:
         self.ui_test_tasts = []
         self.last_lat = 0
         self.last_lon = 0
+        logpath = os.getcwd() + '/logs/'
+        self.log_path = os.path.dirname(logpath)
+        if not os.path.exists(self.log_path):
+            print('log directory created')
+            os.makedirs(self.log_path)
 
     def start_ui_test(self, device_uuid):
         while True:
@@ -49,8 +55,9 @@ class DeviceController:
                 process = None
                 LOG.info('Starting UITest for Device {}'.format(device_uuid))
                 path = os.path.dirname(os.path.realpath(__file__)) + '/../Control'
-                FNULL = open(os.devnull, 'w')
-                process = subprocess.Popen('xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" -derivedDataPath \"{}\" \"POKEMON={}\" \"UUID={}\" \"DELAY={}\"'.format(device_uuid, str(self.config.DERIVED_DATA_PATH), 'false', device_uuid, str(self.config.SCREENSHOT_DELAY)), cwd=str(path), shell=True, stdout=FNULL, stderr=FNULL)
+                log_file = self.log_path + '/{}_{}_xcodebuild.log'.format(strftime("%Y-%m-%d_%H-%M-%S", localtime()), device_uuid)
+                stdout = open(log_file, 'w')
+                process = subprocess.Popen('xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" -derivedDataPath \"{}\" \"POKEMON={}\" \"UUID={}\" \"DELAY={}\"'.format(device_uuid, str(self.config.DERIVED_DATA_PATH), 'false', device_uuid, str(self.config.SCREENSHOT_DELAY)), cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
                 process.wait()
                 LOG.info('UITest for Device {} ended'.format(device_uuid))
             except KeyboardInterrupt:
@@ -111,7 +118,6 @@ class DeviceController:
         LOG.debug('Running device controller task')
         session = database.Session()
         raids = database.get_raids_for_forts(session, self.forts)
-        session.close()
 
         for fort_time in self.locked_forts:
             if fort_time.time <= time.time():
@@ -135,6 +141,7 @@ class DeviceController:
                     break
             if not hasRaid:
                 forts_no_raid.append(fort)
+        session.close()
 
         for device in self.devices:
             fort = None
