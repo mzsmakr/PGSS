@@ -28,10 +28,11 @@ class DBRaid():
 
 class DBFort():
 
-    def __init__(self,id,lat,lon):
+    def __init__(self,id,lat,lon,updated):
         self.id = id
         self.lat = lat
         self.lon = lon
+        self.updated = updated
 
 class FortTime:
 
@@ -225,9 +226,10 @@ class DeviceController:
                 uitest_process = Process(target=self.start_ui_test, args=(device,))
                 uitest_process.start()
                 self.uitest_processes.append(uitest_process)
+                time.sleep(1)
 
-                while True:
-                    self.update_device_locations()
+            while True:
+                self.update_device_locations()
 
         except KeyboardInterrupt:
             os.killpg(0, signal.SIGINT)
