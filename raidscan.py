@@ -86,7 +86,15 @@ class RaidScan:
 
     def restart_crop(self, id):
         time.sleep(1)
-        crop_process = Process(target=crop.crop_task, args=(self,id,))
+        try:
+            crop_obj = crop.Crop()
+        except KeyboardInterrupt:
+            sys.exit(1)
+        except Exception as e:
+            LOG.error('Failed to init Crop: {}'.format(e))
+            self.restart_crop(id)
+            return
+        crop_process = Process(target=crop_obj.crop_task, args=(self,id,))
         crop_process.start()
 
     def restart_nearby(self, id):

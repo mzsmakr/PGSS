@@ -10,3 +10,4 @@ psycopg2-binary>=2.7.4
 discord>=0.0.2
 shapely>=1.6.0
 geopy>=1.14.0
+numpy>=1.14.0
