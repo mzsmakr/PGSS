@@ -1,4 +1,5 @@
 import sys
+import cv2
 from sys import argv
 import datetime
 from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, Formatter
@@ -137,4 +138,5 @@ class RaidScan:
         dc_process.start()
 
 if __name__ == '__main__':
+    cv2.setNumThreads(0)
     main = RaidScan()
