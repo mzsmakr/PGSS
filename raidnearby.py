@@ -18,6 +18,7 @@ import re
 from sys import argv
 import importlib
 import hashlib
+import signal
 
 logpath = os.getcwd()+'/logs/'
 log_path = os.path.dirname(logpath)
@@ -584,6 +585,7 @@ class RaidNearby:
                             session.commit()
                             LOG.info('***** New Egg is added. *****')
                         except KeyboardInterrupt:
+                            os.killpg(0, signal.SIGINT)
                             sys.exit(1)
                         except:
                             LOG.error('Error to update raid egg for fort:{}'.format(gym))
@@ -610,6 +612,7 @@ class RaidNearby:
                                 session.commit()
                                 LOG.info('!!!!! New raid boss is added. !!!!!')
                             except KeyboardInterrupt:
+                                os.killpg(0, signal.SIGINT)
                                 sys.exit(1)
                             except:
                                 LOG.error('Error to update raid boss for fort:{}'.format(gym))
@@ -701,10 +704,12 @@ class RaidNearby:
                     self.processRaidImage(fullpath_filename)
                 time.sleep(1)
         except KeyboardInterrupt:
-            sys.exit(0)
+            os.killpg(0, signal.SIGINT)
+            sys.exit(1)
         except Exception as e:
             LOG.error('Unexpected Exception in raidnerby Process: {}'.format(e))
             if raidscan is not None:
                 raidscan.restart_nearby(id)
             else:
+                os.killpg(0, signal.SIGINT)
                 sys.exit(1)

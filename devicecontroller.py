@@ -5,14 +5,26 @@ import sys
 import os
 import subprocess
 import random
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, Formatter
 import importlib
 from sys import argv
 from geopy.distance import vincenty
 from time import localtime, strftime
+import signal
 
 LOG = getLogger('')
+
+class DBRaid():
+
+    def __init__(self,id,fort_id,level,pokemon_id,time_spawn,time_battle,time_end):
+        self.id = id
+        self.fort_id = fort_id
+        self.level = level
+        self.pokemon_id = pokemon_id
+        self.time_spawn = time_spawn
+        self.time_battle = time_battle
+        self.time_end = time_end
 
 class DBFort():
 
@@ -28,6 +40,39 @@ class FortTime:
         self.time = time
 
 
+def clean_task():
+    while True:
+        try:
+            LOG.info('Deleting old device location history')
+            session = database.Session()
+            database.delete_old_device_location_history(session)
+            session.close()
+        except KeyboardInterrupt:
+            sys.exit(0)
+        except Exception as e:
+            LOG.info('Failed to delete old device location history: {}'.format(e))
+        time.sleep(600)
+
+
+def update_raids(queue, forts):
+    while True:
+        try:
+            LOG.info('Updating Raids')
+            session = database.Session()
+            raids = database.get_raids_for_forts(session, forts)
+            db_raids = []
+            for raid in raids:
+                db_raids.append(DBRaid(raid.id,raid.fort_id,raid.level,raid.pokemon_id,raid.time_spawn,raid.time_battle,raid.time_end))
+            session.commit()
+            session.close()
+            queue.put(db_raids)
+            time.sleep(30)
+        except KeyboardInterrupt:
+            sys.exit(0)
+        except Exception as e:
+            LOG.info('Failed to update Raids: {}'.format(e))
+            time.sleep(5)
+
 class DeviceController:
 
     def __init__(self, forts, devices):
@@ -40,7 +85,7 @@ class DeviceController:
         self.forts = forts
         self.locked_forts = []
         self.devices = devices
-        self.ui_test_tasts = []
+        self.raid_updater_task = None
         self.last_lat = 0
         self.last_lon = 0
         logpath = os.getcwd() + '/logs/'
@@ -48,6 +93,13 @@ class DeviceController:
         if not os.path.exists(self.log_path):
             print('log directory created')
             os.makedirs(self.log_path)
+        self.raids = []
+        self.last_teleport_delays = []
+        self.last_teleport = 0
+        self.update_raids_queue = None
+        self.update_raids_process = None
+        self.uitest_processes = []
+        self.time_start = time.time()
 
     def start_ui_test(self, device_uuid):
         while True:
@@ -64,33 +116,25 @@ class DeviceController:
                 if process is not None:
                     try:
                         process.terminate()
-                    except:
-                        pass
-                sys.exit(0)
+                    except KeyboardInterrupt:
+                        os.killpg(0, signal.SIGINT)
+                        sys.exit(1)
+                    except: pass
+                os.killpg(0, signal.SIGINT)
+                sys.exit(1)
             except Exception as e:
                 if process is not None:
                     try:
                         process.terminate()
-                    except:
-                        pass
+                    except KeyboardInterrupt:
+                        os.killpg(0, signal.SIGINT)
+                        sys.exit(1)
+                    except: pass
                 LOG.info('UITest for Device {} crashed with: {}'.format(device_uuid, e))
             time.sleep(1)
 
-    def clean_task(self):
-        while True:
-            try:
-                LOG.info('Deleting old device location history')
-                session = database.Session()
-                database.delete_old_device_location_history(session)
-                session.close()
-            except KeyboardInterrupt:
-                sys.exit(0)
-            except:
-                LOG.info('Failed to delete old device location history')
-            time.sleep(600)
-
-
     def teleport(self, device, lat, lon, session):
+
         FNULL = open(os.devnull, 'w')
         if lat < 0:
             lat_str = '-- {}'.format(lat)
@@ -108,16 +152,22 @@ class DeviceController:
         time_end = time.time()
 
         distance = vincenty((self.last_lat, self.last_lon ), (lat, lon)).meters
-        LOG.info('Teleporting device with ID {} to {},{} over {:0.0f}m (delay: {:0.2f}s)'.format(device, lat, lon, distance, time_end - time_start))
+
+        last_tp_time = time.time() - self.last_teleport
+        self.last_teleport = time.time()
+
+        LOG.info('Teleporting device with ID {} to {},{} over {:0.0f}m (delay: {:0.2f}s, last ago: {:0.2f}s)'.format(device, lat, lon, distance, time_end - time_start, last_tp_time))
 
         self.last_lon = lon
         self.last_lat = lat
         database.add_device_location_history(session, device, time.time(), lat, lon)
 
     def update_device_locations(self):
+
         LOG.debug('Running device controller task')
-        session = database.Session()
-        raids = database.get_raids_for_forts(session, self.forts)
+
+        while not self.update_raids_queue.empty():
+            self.raids = self.update_raids_queue.get()
 
         for fort_time in self.locked_forts:
             if fort_time.time <= time.time():
@@ -126,14 +176,12 @@ class DeviceController:
         forts_no_raid = []
         forts_no_boss = []
 
-
         for fort in self.forts:
-
             if fort in [fort_time.fort for fort_time in self.locked_forts]:
                 continue
 
             hasRaid = False
-            for raid in raids:
+            for raid in self.raids:
                 if fort.id == raid.fort_id:
                     hasRaid = True
                     if (raid.pokemon_id is None or raid.pokemon_id == 0) and raid.time_battle <= time.time():
@@ -141,7 +189,12 @@ class DeviceController:
                     break
             if not hasRaid:
                 forts_no_raid.append(fort)
-        session.close()
+
+        time_to_wait = (self.config.TELEPORT_DELEAY + self.time_start - time.time())
+        if time_to_wait > 0:
+            time.sleep(time_to_wait)
+
+        self.time_start = time.time()
 
         for device in self.devices:
             fort = None
@@ -158,25 +211,36 @@ class DeviceController:
                 self.teleport(device, fort.lat, fort.lon, session)
             session.close()
 
-    def devicecontroller_main(self, raidscan):
 
+    def devicecontroller_main(self, raidscan):
         try:
-            clean_process = Process(target=self.clean_task)
+            clean_process = Process(target=clean_task)
             clean_process.start()
+
+            self.update_raids_queue = Queue()
+            self.update_raids_process = Process(target=update_raids, args=(self.update_raids_queue, self.forts, ))
+            self.update_raids_process.start()
+
             for device in self.devices:
                 uitest_process = Process(target=self.start_ui_test, args=(device,))
                 uitest_process.start()
-                self.ui_test_tasts.append(uitest_process)
-            while True:
-                self.update_device_locations()
-                time.sleep(self.config.TELEPORT_DELEAY)
+                self.uitest_processes.append(uitest_process)
+
+                while True:
+                    self.update_device_locations()
+
         except KeyboardInterrupt:
-            sys.exit(0)
+            os.killpg(0, signal.SIGINT)
+            sys.exit(1)
         except Exception as e:
             LOG.error('Unexpected Exception in devicecontroller Process: {}'.format(e))
-            for uitest_process in self.ui_test_tasts:
+            if self.update_raids_process is not None:
+                self.update_raids_process.terminate()
+            for uitest_process in self.uitest_processes:
                 uitest_process.terminate()
+
             if raidscan is not None:
                 raidscan.restart_devicecontroller()
             else:
+                os.killpg(0, signal.SIGINT)
                 sys.exit(1)

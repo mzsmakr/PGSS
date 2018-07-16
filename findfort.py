@@ -16,6 +16,7 @@ import math
 from sys import argv
 import importlib
 import hashlib
+import signal
 
 LOG = getLogger('')
 
@@ -94,8 +95,7 @@ class FindFort:
                 try:
                     result = mt.fort_image_matching(str(url_fullpath_filename), str(fort_fullpath_filename))
                 except KeyboardInterrupt:
-                    print('Ctrl-C interrupted')
-                    session.close()
+                    os.killpg(0, signal.SIGINT)
                     sys.exit(1)
                 except:
                     LOG.error('Matching error with {}'.format(str(url_fullpath_filename)))
@@ -128,6 +128,7 @@ class FindFort:
                     try:
                         db.update_gym_image(session,gym_image_id,max_fort_id)
                     except KeyboardInterrupt:
+                        os.killpg(0, signal.SIGINT)
                         sys.exit(1)
                     except:
                         LOG.error('Error to update gym_images for gym_images.id:{} gym_images.fort_id:{}'.format(gym_image_id,max_fort_id))
@@ -211,11 +212,12 @@ class FindFort:
                     LOG.debug('{} new fort image processed'.format(new_img_count))
                 time.sleep(1)
         except KeyboardInterrupt:
-            session.close()
-            sys.exit(0)
+            os.killpg(0, signal.SIGINT)
+            sys.exit(1)
         except Exception as e:
             LOG.error('Unexpected Exception in findfort Process: {}'.format(e))
             if raidscan is not None:
                 raidscan.restart_findfort(id)
             else:
+                os.killpg(0, signal.SIGINT)
                 sys.exit(1)

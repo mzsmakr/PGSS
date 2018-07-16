@@ -18,6 +18,7 @@ from shapely.geometry import Polygon, Point
 from downloadfortimg import download_img
 from devicecontroller import DBFort
 import importlib
+import signal
 
 LOG = getLogger('')
 
@@ -90,6 +91,7 @@ class RaidScan:
         try:
             crop_obj = crop.Crop()
         except KeyboardInterrupt:
+            os.killpg(0, signal.SIGINT)
             sys.exit(1)
         except Exception as e:
             LOG.error('Failed to init Crop: {}'.format(e))
@@ -103,6 +105,7 @@ class RaidScan:
         try:
             raid_nearby = raidnearby.RaidNearby()
         except KeyboardInterrupt:
+            os.killpg(0, signal.SIGINT)
             sys.exit(1)
         except Exception as e:
             LOG.error('Failed to init RaidNearby: {}'.format(e))
@@ -116,6 +119,7 @@ class RaidScan:
         try:
             find_fort = findfort.FindFort()
         except KeyboardInterrupt:
+            os.killpg(0, signal.SIGINT)
             sys.exit(1)
         except Exception as e:
             LOG.error('Failed to init FindFort: {}'.format(e))
@@ -129,6 +133,7 @@ class RaidScan:
         try:
             device_controller = devicecontroller.DeviceController(self.all_forts_inside, self.config.DEVICE_LIST)
         except KeyboardInterrupt:
+            os.killpg(0, signal.SIGINT)
             sys.exit(1)
         except Exception as e:
             LOG.error('Failed to init DeviceController: {}'.format(e))
@@ -137,6 +142,8 @@ class RaidScan:
         dc_process = Process(target=device_controller.devicecontroller_main, args=(self,))
         dc_process.start()
 
+
 if __name__ == '__main__':
+    os.setpgrp()
     cv2.setNumThreads(0)
     main = RaidScan()

@@ -10,6 +10,7 @@ import sys
 from sys import argv
 import importlib
 import hashlib
+import signal
 
 LOG = getLogger('')
 
@@ -218,10 +219,12 @@ class Crop:
                     self.crop_img(fullpath_filename)
                 time.sleep(0.1)  # task runs every 0.1 seconds
         except KeyboardInterrupt:
-            sys.exit(0)
+            os.killpg(0, signal.SIGINT)
+            sys.exit(1)
         except Exception as e:
             LOG.error('Unexpected Exception in crop Process: {}'.format(e))
             if raidscan is not None:
                 raidscan.restart_crop(task_id)
             else:
+                os.killpg(0, signal.SIGINT)
                 sys.exit(1)

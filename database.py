@@ -252,7 +252,7 @@ def get_raid_pokemon_id(session, fort_id):
     raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     session.commit()
     if raid is None:
-        session.add(Raid(fort_id = str(fort_id)))
+        session.add(Raid(fort_id=fort_id))
         session.commit()
         raid = session.query(Raid).filter_by(fort_id=fort_id).first()
         raid.pokemon_id = -1
@@ -261,11 +261,11 @@ def get_raid_pokemon_id(session, fort_id):
     return raid.pokemon_id
     
 def update_raid_egg(session, fort_id, level, time_battle):
-    raid = session.query(Raid).filter_by(fort_id=str(fort_id)).first()
+    raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     if raid is None:
-        session.add(Raid(fort_id = str(fort_id)))
+        session.add(Raid(fort_id=fort_id))
         session.commit()
-        raid = session.query(Raid).filter_by(fort_id=str(fort_id)).first()        
+        raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     raid.level = int(level)
     raid.pokemon_id = 0
     raid.time_spawn = time_battle - 3600
@@ -277,20 +277,20 @@ def update_raid_egg(session, fort_id, level, time_battle):
     session.commit()
 
 def update_raid_mon(session, fort_id, pokemon_id):
-    raid = session.query(Raid).filter_by(fort_id=str(fort_id)).first()
+    raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     if raid is None:
-        session.add(Raid(fort_id = str(fort_id)))
-        raid = session.query(Raid).filter_by(fort_id=str(fort_id)).first()
+        session.add(Raid(fort_id=fort_id))
+        raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     raid.pokemon_id = int(pokemon_id)
     raid.move_1 = 133
     raid.move_2 = 133
     raid.cp = 0
 
 def updata_fort_sighting(session, fort_id, unix_time):
-    fort_sighting = session.query(FortSighting).filter_by(fort_id=str(fort_id)).first()
+    fort_sighting = session.query(FortSighting).filter_by(fort_id=fort_id).first()
     if fort_sighting is None:
-        session.add(FortSighting(fort_id = str(fort_id), team =  int(0), last_modified = int(unix_time), updated = int(unix_time)))
-        fort_sighting = session.query(FortSighting).filter_by(fort_id=str(fort_id)).first()
+        session.add(FortSighting(fort_id=fort_id, team='0', last_modified=int(unix_time), updated=int(unix_time)))
+        fort_sighting = session.query(FortSighting).filter_by(fort_id=fort_id).first()
     fort_sighting.updated = int(unix_time)
     fort_sighting.last_modified = int(unix_time)
     fort_sighting.team = int(0)
@@ -369,7 +369,6 @@ def get_raids_for_forts(session, forts):
         .filter(Raid.fort_id.in_([fort.id for fort in forts]))\
         .filter(Raid.time_end >= time.time())\
         .all()
-    session.commit()
     return raids
 
 def add_device_location_history(session, device_uuid, timestamp, lat, lon):
