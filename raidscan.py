@@ -87,7 +87,7 @@ class RaidScan:
             self.restart_devicecontroller()
 
     def restart_crop(self, id):
-        time.sleep(1)
+        time.sleep(0.1)
         try:
             crop_obj = crop.Crop()
         except KeyboardInterrupt:
@@ -101,7 +101,7 @@ class RaidScan:
         crop_process.start()
 
     def restart_nearby(self, id):
-        time.sleep(1)
+        time.sleep(0.1)
         try:
             raid_nearby = raidnearby.RaidNearby()
         except KeyboardInterrupt:
@@ -115,7 +115,7 @@ class RaidScan:
         rn_process.start()
 
     def restart_findfort(self, id):
-        time.sleep(1)
+        time.sleep(0.1)
         try:
             find_fort = findfort.FindFort()
         except KeyboardInterrupt:
@@ -129,7 +129,7 @@ class RaidScan:
         ff_process.start()
 
     def restart_devicecontroller(self):
-        time.sleep(1)
+        time.sleep(0.1)
         try:
             device_controller = devicecontroller.DeviceController(self.all_forts_inside, self.config.DEVICE_LIST)
         except KeyboardInterrupt:

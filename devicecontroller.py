@@ -1,11 +1,11 @@
 import time
-
+from threading import Thread
 import database
 import sys
 import os
 import subprocess
 import random
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Manager
 from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, Formatter
 import importlib
 from sys import argv
@@ -51,7 +51,7 @@ def clean_task():
         except KeyboardInterrupt:
             sys.exit(0)
         except Exception as e:
-            LOG.info('Failed to delete old device location history: {}'.format(e))
+            LOG.error('Failed to delete old device location history: {}'.format(e))
         time.sleep(600)
 
 
@@ -71,7 +71,7 @@ def update_raids(queue, forts):
         except KeyboardInterrupt:
             sys.exit(0)
         except Exception as e:
-            LOG.info('Failed to update Raids: {}'.format(e))
+            LOG.error('Failed to update Raids: {}'.format(e))
             time.sleep(5)
 
 class DeviceController:
@@ -87,8 +87,8 @@ class DeviceController:
         self.locked_forts = []
         self.devices = devices
         self.raid_updater_task = None
-        self.last_lat = 0
-        self.last_lon = 0
+        self.last_lats = []
+        self.last_lons = []
         logpath = os.getcwd() + '/logs/'
         self.log_path = os.path.dirname(logpath)
         if not os.path.exists(self.log_path):
@@ -96,7 +96,7 @@ class DeviceController:
             os.makedirs(self.log_path)
         self.raids = []
         self.last_teleport_delays = []
-        self.last_teleport = 0
+        self.last_teleports = []
         self.update_raids_queue = None
         self.update_raids_process = None
         self.uitest_processes = []
@@ -134,7 +134,7 @@ class DeviceController:
                 LOG.info('UITest for Device {} crashed with: {}'.format(device_uuid, e))
             time.sleep(1)
 
-    def teleport(self, device, lat, lon, session):
+    def teleport(self, device, lat, lon, session, last_teleport, distance, i, queue):
 
         FNULL = open(os.devnull, 'w')
         if lat < 0:
@@ -150,18 +150,13 @@ class DeviceController:
         process = subprocess.Popen('idevicelocation -u {} {} {}'.format(device, lat_str, lon_str), shell=True, stdout=FNULL, stderr=FNULL)
         time_start = time.time()
         process.wait(5)
+
+        queue.put([i, time.time()])
+
         time_end = time.time()
-
-        distance = vincenty((self.last_lat, self.last_lon ), (lat, lon)).meters
-
-        last_tp_time = time.time() - self.last_teleport
-        self.last_teleport = time.time()
-
+        last_tp_time = time_end - last_teleport
         LOG.info('Teleporting device with ID {} to {},{} over {:0.0f}m (delay: {:0.2f}s, last ago: {:0.2f}s)'.format(device, lat, lon, distance, time_end - time_start, last_tp_time))
-
-        self.last_lon = lon
-        self.last_lat = lat
-        database.add_device_location_history(session, device, time.time(), lat, lon)
+        database.add_device_location_history(session, device, time_end, lat, lon)
 
     def update_device_locations(self):
 
@@ -197,6 +192,15 @@ class DeviceController:
 
         self.time_start = time.time()
 
+        jobs = []
+        manager = Manager()
+        return_dict = manager.dict()
+
+        session = database.Session()
+
+        queue = Queue()
+
+        i = 0
         for device in self.devices:
             fort = None
             if len(forts_no_boss) > 0:
@@ -206,12 +210,37 @@ class DeviceController:
                 random.shuffle(forts_no_raid)
                 fort = forts_no_raid.pop()
 
-            session = database.Session()
+            if not len(self.last_lats) > i:
+                self.last_lons.append(0)
+                self.last_lats.append(0)
+                self.last_teleports.append(0)
+
             if fort is not None:
                 self.locked_forts.append(FortTime(fort, time.time() + 120))
-                self.teleport(device, fort.lat, fort.lon, session)
-            session.close()
 
+                disntance = vincenty((self.last_lats[i], self.last_lons[i]), (fort.lat, fort.lon)).meters
+
+                thread = Process(target=self.teleport, args=(device, fort.lat, fort.lon, session, self.last_teleports[i], disntance, i, queue, ))
+                jobs.append(thread)
+
+                self.last_lons[i] = fort.lon
+                self.last_lats[i] = fort.lat
+
+            i += 1
+
+        for job in jobs:
+            job.start()
+
+        for job in jobs:
+            job.join()
+
+        session.close()
+
+        while not queue.empty():
+            value = queue.get()
+            self.last_teleports[value[0]] = value[1]
+
+        queue.close()
 
     def devicecontroller_main(self, raidscan):
         try:
@@ -226,7 +255,7 @@ class DeviceController:
                 uitest_process = Process(target=self.start_ui_test, args=(device,))
                 uitest_process.start()
                 self.uitest_processes.append(uitest_process)
-                time.sleep(1)
+                time.sleep(0.1)
 
             while True:
                 self.update_device_locations()
