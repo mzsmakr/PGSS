@@ -31,10 +31,9 @@ SCAN_AREA = None
 #])
 
 DEVICE_LIST = None
-#DEVICE_LIST = ['168069373365c2dbf9155169cfa3dc2d25068761']
-
-SCREENSHOT_DELAY = 0.1
-TELEPORT_DELEAY = 5
+#DEVICE_LIST = ['168069373365c2dbf9155169cfa3dc2d25068761', 'xxx']
+TELEPORT_DELEAYS = [5, 5]
+SCREENSHOT_DELAYS = [0.25, 0.25]
 
 from os import path
 DERIVED_DATA_PATH = path.dirname(path.realpath(__file__))+'/DerivedData'

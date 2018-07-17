@@ -49,8 +49,17 @@ class FindFort:
         if len(parts) >= 3:
             device = parts[len(parts) - 2]
             time = int(parts[len(parts) - 1])
-            time_a = math.floor(time - (self.config.TELEPORT_DELEAY / 2))
-            time_b = math.ceil(time + (self.config.TELEPORT_DELEAY / 2))
+
+            teleport_delay = 1
+            index = 0
+            for device_conf in self.config.DEVICE_LIST:
+                if device_conf == device:
+                    teleport_delay = self.config.TELEPORT_DELEAYS[index]
+                    break
+                index += 1
+
+            time_a = math.floor(time - (teleport_delay / 2))
+            time_b = math.ceil(time + (teleport_delay / 2))
 
             device_location_a = db.get_device_location_history(session, time_a, device)
             device_location_b = db.get_device_location_history(session, time_b, device)

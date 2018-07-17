@@ -51,7 +51,7 @@ class HealthCheck:
                     if self.crop_last is not None:
                         if total_count >= 100 and total_count > self.crop_last:
                             LOG.warning('Crop can not keep up. Increase "CROP_PROCESSES" '
-                                        '(or increase "SCREENSHOT_DELAY")!')
+                                        '(or increase "SCREENSHOT_DELAYS")!')
                     self.crop_last = total_count
 
                 if self.check_nearby:
