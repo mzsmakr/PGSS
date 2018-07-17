@@ -54,7 +54,7 @@ class FindFort:
             index = 0
             for device_conf in self.config.DEVICE_LIST:
                 if device_conf == device:
-                    teleport_delay = self.config.TELEPORT_DELEAYS[index]
+                    teleport_delay = self.config.TELEPORT_DELAYS[index]
                     break
                 index += 1
 

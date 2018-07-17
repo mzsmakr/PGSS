@@ -298,7 +298,7 @@ class DeviceController:
                 uitest_process.start()
                 self.uitest_processes.append(uitest_process)
 
-                tp_process = Process(target=update_device_location, args=(t_obj, lock, device, self.config.TELEPORT_DELEAYS[index], ))
+                tp_process = Process(target=update_device_location, args=(t_obj, lock, device, self.config.TELEPORT_DELAYS[index], ))
                 tp_process.start()
                 self.teleport_processes.append(tp_process)
 
