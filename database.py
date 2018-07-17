@@ -393,13 +393,16 @@ def get_fort_ids_within_range(session, forts, range, lat, lon):
     if forts is None:
         forts = get_forts(session)
 
-    ids = []
+    ids_with_range = []
     for fort in forts:
         distance = vincenty((fort.lat, fort.lon), (lat, lon)).meters
         if distance <= range:
-            ids.append(fort.id)
+            ids_with_range.append([distance, fort.id])
 
     session.commit()
+
+    ids_with_range = sorted(ids_with_range, key=lambda x: x[0], reverse=False)
+    ids = [obj[1] for obj in ids_with_range]
     cache_object = DBCacheFortIdsWithinRange(range, lat, lon, ids)
     DBCache.fort_ids_within_range.append(cache_object)
 

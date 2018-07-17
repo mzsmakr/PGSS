@@ -63,8 +63,8 @@ class DBFort:
 
 class FortTime:
 
-    def __init__(self, fort, time):
-        self.fort = fort
+    def __init__(self, fort_id, time):
+        self.fort_id = fort_id
         self.time = time
 
 
@@ -86,6 +86,7 @@ def update_raids_and_forts(t_obj, lock, forts):
 
     time.sleep(1)
     while True:
+        is_locked = False
         try:
             LOG.debug('Updating Raids and checking Gyms')
             session = database.Session()
@@ -97,6 +98,7 @@ def update_raids_and_forts(t_obj, lock, forts):
             session.close()
 
             lock.acquire()
+            is_locked = True
             locked_forts = t_obj.get_locked_forts()
             for fort_time in locked_forts:
                 if fort_time.time <= time.time():
@@ -108,7 +110,7 @@ def update_raids_and_forts(t_obj, lock, forts):
             forts_no_boss = []
 
             for fort in forts:
-                if fort in [fort_time.fort for fort_time in locked_forts]:
+                if fort.id in [fort_time.fort_id for fort_time in locked_forts]:
                     continue
 
                 hasRaid = False
@@ -133,10 +135,12 @@ def update_raids_and_forts(t_obj, lock, forts):
             sys.exit(0)
         except Exception as e:
             LOG.error('Failed to update Raids and Gyms: {}'.format(e))
+            if is_locked:
+                lock.release()
             time.sleep(1)
 
 
-def update_device_location(t_obj, lock, device, sleep):
+def update_device_location(t_obj, lock, device, sleep, forts):
 
     last_teleport = 0
     last_lat = 0
@@ -146,6 +150,9 @@ def update_device_location(t_obj, lock, device, sleep):
     while True:
 
         try:
+
+            is_boss = False
+
             LOG.debug('Running device controller task for {}'.format(device))
 
             fort = None
@@ -154,16 +161,42 @@ def update_device_location(t_obj, lock, device, sleep):
             locked = True
             forts_no_boss = t_obj.get_forts_no_boss()
             forts_no_raid = t_obj.get_forts_no_raid()
+
             if len(forts_no_boss) > 0:
-                fort = forts_no_boss.pop()
-                t_obj.set_forts_no_boss(forts_no_boss)
+                fort = forts_no_boss[0]
             elif len(forts_no_raid) > 0:
-                fort = forts_no_raid.pop()
-                t_obj.set_forts_no_raid(forts_no_raid)
+                fort = forts_no_raid[0]
 
             if fort is not None:
+
+                session = database.Session()
+                close_fort_ids = database.get_fort_ids_within_range(session, forts, 600, fort.lat, fort.lon)
+                session.close()
+
                 locked_forts = t_obj.get_locked_forts()
-                locked_forts.append(FortTime(fort, time.time() + 120))
+                index = 0
+                for close_fort_id in close_fort_ids:
+                    if index == 6:
+                        break
+                    index += 1
+
+                    if close_fort_id in [fort.id for fort in forts_no_boss]:
+                        lock_time = 30
+                        close_forts = [fort for fort in forts_no_boss if fort.id == close_fort_id]
+                        close_fort = close_forts[0]
+                        forts_no_boss.remove(close_fort)
+                    elif close_fort_id in [fort.id for fort in forts_no_raid]:
+                        lock_time = 120
+                        close_forts = [fort for fort in forts_no_raid if fort.id == close_fort_id]
+                        close_fort = close_forts[0]
+                        forts_no_raid.remove(close_fort)
+                    else:
+                        continue
+
+                    locked_forts.append(FortTime(close_fort.id, time.time() + lock_time))
+
+                t_obj.set_forts_no_raid(forts_no_raid)
+                t_obj.set_forts_no_boss(forts_no_boss)
                 t_obj.set_locked_forts(locked_forts)
                 lock.release()
                 locked = False
@@ -206,7 +239,12 @@ def update_device_location(t_obj, lock, device, sleep):
                 locked = False
                 time_start = time.time()
 
-            sleep_time = sleep - time.time() + time_start
+            if is_boss:
+                sleep_r = sleep + sleep
+            else:
+                sleep_r = sleep
+
+            sleep_time = sleep_r - time.time() + time_start
             if sleep_time > 0:
                 time.sleep(sleep_time)
 
@@ -289,7 +327,7 @@ class DeviceController:
             self.clean_process = Process(target=clean_task)
             self.clean_process.start()
 
-            self.update_raids_process = Process(target=update_raids_and_forts, args=(t_obj, lock,  self.forts, ))
+            self.update_raids_process = Process(target=update_raids_and_forts, args=(t_obj, lock, self.forts, ))
             self.update_raids_process.start()
 
             index = 0
@@ -298,7 +336,7 @@ class DeviceController:
                 uitest_process.start()
                 self.uitest_processes.append(uitest_process)
 
-                tp_process = Process(target=update_device_location, args=(t_obj, lock, device, self.config.TELEPORT_DELAYS[index], ))
+                tp_process = Process(target=update_device_location, args=(t_obj, lock, device, self.config.TELEPORT_DELAYS[index],  self.forts, ))
                 tp_process.start()
                 self.teleport_processes.append(tp_process)
 
