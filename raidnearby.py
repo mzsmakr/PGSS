@@ -99,6 +99,9 @@ class RaidNearby:
         img_gray = cv2.cvtColor(level_img,cv2.COLOR_BGR2GRAY)
         ret,thresh1 = cv2.threshold(img_gray,220,255,cv2.THRESH_BINARY_INV)
 
+        if thresh1 is None:
+            return -1
+
         profile = []
         star_start = []
         star_end = []
@@ -571,8 +574,8 @@ class RaidNearby:
                     fullpath_dest = str(self.not_find_path) + 'Level_Failed_Fort_' + str(gym) + '_GymImages_' + str(gym_image_id) + '.png'
                     shutil.move(raidfilename,fullpath_dest)
                     return False
-                spawn_time = hatch_time - 3600
-                end_time = hatch_time + 2700
+                #spawn_time = hatch_time - 3600
+                #end_time = hatch_time + 2700
                 time_battle = database.get_raid_battle_time(session, gym)
                 LOG.info('Egg: level={} time_text={} gym={} error_gym={} hatch_time={} time_battle={}'.format(level, time_text, gym, error_gym, hatch_time, time_battle))
                 if update_raid == True:
@@ -688,7 +691,6 @@ class RaidNearby:
 
     def main(self, raidscan, id):
         try:
-
             LOG.info('Raid nearby task started for process {}'.format(id + 1))
             LOG.debug('Unknown fort id: {}'.format(self.unknown_fort_id))
             LOG.debug('Not a fort id: {}'.format(self.not_a_fort_id))

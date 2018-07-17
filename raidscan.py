@@ -11,6 +11,7 @@ import findfort
 import devicecontroller
 import crop
 import os
+import healthcheck
 import concurrent.futures
 from multiprocessing import Process
 from pathlib import Path
@@ -86,6 +87,8 @@ class RaidScan:
         if self.config.ENABLE_CONTROL and self.config.SCAN_AREA is not None and self.config.DEVICE_LIST is not None:
             self.restart_devicecontroller()
 
+        self.restart_healthcheck()
+
     def restart_crop(self, id):
         time.sleep(0.1)
         try:
@@ -141,6 +144,20 @@ class RaidScan:
             return
         dc_process = Process(target=device_controller.devicecontroller_main, args=(self,))
         dc_process.start()
+
+    def restart_healthcheck(self):
+        time.sleep(0.1)
+        try:
+            health_check = healthcheck.HealthCheck()
+        except KeyboardInterrupt:
+            os.killpg(0, signal.SIGINT)
+            sys.exit(1)
+        except Exception as e:
+            LOG.error('Failed to init HealthCheck: {}'.format(e))
+            self.restart_healthcheck()
+            return
+        hc_process = Process(target=health_check.healthcheck_main, args=(self,))
+        hc_process.start()
 
 
 if __name__ == '__main__':

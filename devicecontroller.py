@@ -1,5 +1,4 @@
 import time
-from threading import Thread
 import database
 import sys
 import os
@@ -56,6 +55,7 @@ def clean_task():
 
 
 def update_raids(queue, forts):
+    time.sleep(1)
     while True:
         try:
             LOG.info('Updating Raids')
