@@ -70,9 +70,10 @@ for fullpath_filename in p.glob('*.png'):
                     print('The gym image is assigned as fort id:', gym_image_fort_id)
                     print('If the fort id is not correct, delete the gym image id:', gym_image_id)
                     print('and run submit.py again')
-            url_full_path = url_image_path + str(fort_id) + '.png'
-            if not os.path.exists(url_full_path):
-                save_url_img(img, url_full_path)
+            url_full_path_jpg = url_image_path + str(fort_id) + '.jpg'
+            url_full_path_png = url_image_path + str(fort_id) + '.png'
+            if not os.path.exists(url_full_path_jpg):
+                save_url_img(img, url_full_path_png)
         elif str(fort_id) == 'Not':
             img = cv2.imread(str(fullpath_filename),3)
             gym_image_id = rs.RaidNearby().get_gym_image_id(img)

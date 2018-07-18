@@ -225,7 +225,7 @@ class RaidNearby:
                 gym_image_id = gym.id
 
 
-        if min_error > 10:
+        if min_error > 7:
             LOG.info('gym_id:{} min_error:{}'.format(gym_id, min_error))
             LOG.info('GymImage added to database')
             gym_id = -1

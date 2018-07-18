@@ -91,13 +91,13 @@ class FindFort:
             LOG.debug('Matching without location')
             limit_forts = None
 
-        for url_fullpath_filename in p_url.glob('*.jpg'):
+        for url_fullpath_filename in p_url.glob('*'):
 
             url_filename = os.path.basename(url_fullpath_filename)
             url_filename, url_filename_ext = os.path.splitext(url_filename)
 
-            #if url_filename_ext != '.png' and url_filename_ext != '.jpg':
-            #    continue
+            if url_filename_ext != '.png' and url_filename_ext != '.jpg':
+                continue
 
             if limit_forts is not None and len(limit_forts) != 0:
                 if int(url_filename) not in limit_forts:
