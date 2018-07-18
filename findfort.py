@@ -91,13 +91,13 @@ class FindFort:
             LOG.debug('Matching without location')
             limit_forts = None
 
-        for url_fullpath_filename in p_url.glob('*'):
+        for url_fullpath_filename in p_url.glob('*.jpg'):
 
             url_filename = os.path.basename(url_fullpath_filename)
             url_filename, url_filename_ext = os.path.splitext(url_filename)
 
-            if url_filename_ext != '.png' and url_filename_ext != '.jpg':
-                continue
+            #if url_filename_ext != '.png' and url_filename_ext != '.jpg':
+            #    continue
 
             if limit_forts is not None and len(limit_forts) != 0:
                 if int(url_filename) not in limit_forts:
@@ -177,10 +177,10 @@ class FindFort:
         else:
             split = str(fort_filename).split('_')
             if len(split) == 4:
-                fort_filename_real = split[0] + '_' + split[1]
+                fort_filename_real = split[0] + '_' + split[1] + '.png'
             else:
                 fort_filename_real = fort_filename
-            fort_result_file = os.getcwd() + '/not_find_img/' + str(fort_filename_real) + '.png'
+            fort_result_file = os.getcwd() + '/not_find_img/' + str(fort_filename_real)
             url_result_file = os.getcwd() + '/not_find_img/'+str(max_fort_id) + str(url_filename_ext)
             shutil.move(fort_fullpath_filename, fort_result_file)
             shutil.copy(max_url_fullpath_filename, url_result_file)
