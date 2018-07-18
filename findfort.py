@@ -91,10 +91,13 @@ class FindFort:
             LOG.debug('Matching without location')
             limit_forts = None
 
-        for url_fullpath_filename in p_url.glob('*.jpg'):
+        for url_fullpath_filename in p_url.glob('*'):
 
             url_filename = os.path.basename(url_fullpath_filename)
             url_filename, url_filename_ext = os.path.splitext(url_filename)
+
+            if url_filename_ext != '.png' and url_filename_ext != '.jpg':
+                continue
 
             if limit_forts is not None and len(limit_forts) != 0:
                 if int(url_filename) not in limit_forts:
@@ -117,7 +120,7 @@ class FindFort:
                         max_fort_id = fort_id
                         max_url_fullpath_filename = url_fullpath_filename
     #            await asyncio.sleep(0.01)
-            
+
         LOG.info('fort_filename:{} max_fort_id: {} max_value: {}'.format(fort_filename,max_fort_id, max_value))
         img = cv2.imread(str(fort_fullpath_filename), 3)
         gym_image_id = self.raidnearby.get_gym_image_id(img)
@@ -172,7 +175,12 @@ class FindFort:
             LOG.info('If the Fort_{}.png and Fort_{}_url.jpg in not_find_img are correct'.format(str(max_fort_id),str(max_fort_id)))
             LOG.info('Run "python3.6 manualsubmit.py"'.format(str(max_fort_id),str(max_fort_id)))
         else:
-            fort_result_file = os.getcwd() + '/not_find_img/' + str(fort_filename)
+            split = str(fort_filename).split('_')
+            if len(split) == 4:
+                fort_filename_real = split[0] + '_' + split[1]
+            else:
+                fort_filename_real = fort_filename
+            fort_result_file = os.getcwd() + '/not_find_img/' + str(fort_filename_real) + '.png'
             url_result_file = os.getcwd() + '/not_find_img/'+str(max_fort_id) + str(url_filename_ext)
             shutil.move(fort_fullpath_filename, fort_result_file)
             shutil.copy(max_url_fullpath_filename, url_result_file)
