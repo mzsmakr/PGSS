@@ -115,6 +115,9 @@ def update_raids_and_forts(t_obj, lock, forts):
 
                 hasRaid = False
                 for raid in db_raids:
+                    if raid.time_end >= time.time():
+                        continue
+
                     if fort.id == raid.fort_id:
                         hasRaid = True
                         if (raid.pokemon_id is None or raid.pokemon_id == 0) and raid.time_battle <= time.time():

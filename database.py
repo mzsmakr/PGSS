@@ -367,7 +367,7 @@ def get_forts(session):
 def get_raids_for_forts(session, forts):
     raids = session.query(Raid)\
         .filter(Raid.fort_id.in_([fort.id for fort in forts]))\
-        .filter(Raid.time_end >= time.time())\
+        .filter(Raid.time_end >= time.time() - 1800)\
         .all()
     return raids
 
