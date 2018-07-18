@@ -115,7 +115,7 @@ def update_raids_and_forts(t_obj, lock, forts):
 
                 hasRaid = False
                 for raid in db_raids:
-                    if raid.time_end >= time.time():
+                    if raid.time_end <= time.time():
                         continue
 
                     if fort.id == raid.fort_id:
