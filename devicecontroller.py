@@ -22,7 +22,12 @@ class TransferObject:
     def __init__(self):
         self.locked_forts = []
         self.forts_no_raid = []
+        self.forts_no_raid_priority = []
         self.forts_no_boss = []
+        self.forts = []
+
+    def set_forts(self, forts):
+        self.forts = forts
 
     def set_locked_forts(self, locked_forts):
         self.locked_forts = locked_forts
@@ -30,14 +35,23 @@ class TransferObject:
     def set_forts_no_raid(self, forts_no_raid):
         self.forts_no_raid = forts_no_raid
 
+    def set_forts_no_raid_priority(self, forts_no_raid_priority):
+        self.forts_no_raid_priority = forts_no_raid_priority
+
     def set_forts_no_boss(self, forts_no_boss):
         self.forts_no_boss = forts_no_boss
+
+    def get_forts(self):
+        return self.forts
 
     def get_locked_forts(self):
         return self.locked_forts
 
     def get_forts_no_boss(self):
         return self.forts_no_boss
+
+    def get_forts_no_raid_priority(self):
+        return self.forts_no_raid_priority
 
     def get_forts_no_raid(self):
         return self.forts_no_raid
@@ -82,7 +96,7 @@ def clean_task():
         time.sleep(600)
 
 
-def update_raids_and_forts(t_obj, lock, forts):
+def update_raids_and_forts(t_obj, lock, forts_static):
 
     time.sleep(1)
     while True:
@@ -90,7 +104,7 @@ def update_raids_and_forts(t_obj, lock, forts):
         try:
             LOG.debug('Updating Raids and checking Gyms')
             session = database.Session()
-            raids = database.get_raids_for_forts(session, forts)
+            raids = database.get_raids_for_forts(session, forts_static)
             db_raids = []
             for raid in raids:
                 db_raids.append(DBRaid(raid.id,raid.fort_id,raid.level,raid.pokemon_id,raid.time_spawn,raid.time_battle,raid.time_end))
@@ -105,8 +119,10 @@ def update_raids_and_forts(t_obj, lock, forts):
                     locked_forts.remove(fort_time)
 
             t_obj.set_locked_forts(locked_forts)
+            forts = t_obj.get_forts()
 
             forts_no_raid = []
+            forts_no_raid_priority = []
             forts_no_boss = []
 
             for fort in forts:
@@ -121,15 +137,23 @@ def update_raids_and_forts(t_obj, lock, forts):
                     if fort.id == raid.fort_id:
                         hasRaid = True
                         if (raid.pokemon_id is None or raid.pokemon_id == 0) and raid.time_battle <= time.time():
-                            forts_no_boss.append(fort)
+                            if raid.time_battle + 300 >= time.time():
+                                forts_no_boss.append(fort)
+                            else:
+                                hasRaid = False
                         break
                 if not hasRaid:
-                    forts_no_raid.append(fort)
+                    if time.time() - fort.updated >= 300:
+                        forts_no_raid_priority.append(fort)
+                    else:
+                        forts_no_raid.append(fort)
 
             random.shuffle(forts_no_boss)
+            random.shuffle(forts_no_raid_priority)
             random.shuffle(forts_no_raid)
 
             t_obj.set_forts_no_raid(forts_no_raid)
+            t_obj.set_forts_no_raid_priority(forts_no_raid_priority)
             t_obj.set_forts_no_boss(forts_no_boss)
             lock.release()
 
@@ -164,9 +188,14 @@ def update_device_location(t_obj, lock, device, sleep, forts):
             locked = True
             forts_no_boss = t_obj.get_forts_no_boss()
             forts_no_raid = t_obj.get_forts_no_raid()
+            forts_no_raid_priority = t_obj.get_forts_no_raid_priority()
+            forts_no_raid_all = forts_no_raid + forts_no_raid_priority
+            forts = t_obj.get_forts()
 
             if len(forts_no_boss) > 0:
                 fort = forts_no_boss[0]
+            elif len(forts_no_raid_priority) > 0:
+                fort = forts_no_raid_priority[0]
             elif len(forts_no_raid) > 0:
                 fort = forts_no_raid[0]
 
@@ -188,19 +217,26 @@ def update_device_location(t_obj, lock, device, sleep, forts):
                         close_forts = [fort for fort in forts_no_boss if fort.id == close_fort_id]
                         close_fort = close_forts[0]
                         forts_no_boss.remove(close_fort)
-                    elif close_fort_id in [fort.id for fort in forts_no_raid]:
+                    elif close_fort_id in [fort.id for fort in forts_no_raid_all]:
                         lock_time = 120
-                        close_forts = [fort for fort in forts_no_raid if fort.id == close_fort_id]
+                        close_forts = [fort for fort in forts_no_raid_all if fort.id == close_fort_id]
                         close_fort = close_forts[0]
-                        forts_no_raid.remove(close_fort)
+                        try: forts_no_raid.remove(close_fort)
+                        except: pass
+                        try: forts_no_raid_priority.remove(close_fort)
+                        except: pass
                     else:
                         continue
 
                     locked_forts.append(FortTime(close_fort.id, time.time() + lock_time))
+                    forts_fort = [fort for fort in forts if fort.id == close_fort_id]
+                    forts_fort[0].updated = time.time()
 
                 t_obj.set_forts_no_raid(forts_no_raid)
+                t_obj.set_forts_no_raid_priority(forts_no_raid_priority)
                 t_obj.set_forts_no_boss(forts_no_boss)
                 t_obj.set_locked_forts(locked_forts)
+                t_obj.set_forts(forts)
                 lock.release()
                 locked = False
 
@@ -324,6 +360,7 @@ class DeviceController:
         manager.start()
 
         t_obj = manager.TransferObject()
+        t_obj.set_forts(self.forts)
         lock = manager.Lock()
 
         try:
