@@ -53,8 +53,14 @@ for fullpath_filename in p.glob('*.png'):
         if fort_id.isdecimal()==True:
             print('fort_id:', fort_id)
             img = cv2.imread(str(fullpath_filename),3)
-            gym_image_id = rs.RaidNearby(-1).get_gym_image_id(img)
+            nearby = rs.RaidNearby(-1)
+            gym_image_id = nearby.get_gym_image_id(img)
             gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
+            if gym_image_fort_id is None:
+                nearby.detectGym(img)
+                gym_image_id = nearby.get_gym_image_id(img)
+                gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
+
             if int(fort_id) == int(gym_image_fort_id):
                 print('This gym image is already trained')
                 os.remove(fullpath_filename)
@@ -92,8 +98,14 @@ for fullpath_filename in p.glob('*.png'):
         if pokemon_id.isdecimal()==True:
             print('pokemon_id:', pokemon_id)
             img = cv2.imread(str(fullpath_filename),3)
-            pokemon_image_id = rs.RaidNearby(-1).get_pokemon_image_id(img)
+            nearby = rs.RaidNearby(-1)
+            pokemon_image_id = nearby.get_pokemon_image_id(img)
             pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
+            if pokemon_image_pokemon_id is None:
+                nearby.detectMon(img)
+                pokemon_image_id = nearby.get_pokemon_image_id(img)
+                pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
+
             if int(pokemon_id) == int(pokemon_image_pokemon_id) or Force_update:
                 print('This pokemon image is already trained')
                 os.remove(fullpath_filename)
@@ -122,8 +134,3 @@ for fullpath_filename in p.glob('*.png'):
 print('Submitted')
 print('  ',fort_count,'gym images')
 print('  ',pokemon_count,'pokemon images')
-                    
-                    
-                    
-            
-                
