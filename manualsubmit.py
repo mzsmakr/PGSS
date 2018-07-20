@@ -53,7 +53,7 @@ for fullpath_filename in p.glob('*.png'):
         if fort_id.isdecimal()==True:
             print('fort_id:', fort_id)
             img = cv2.imread(str(fullpath_filename),3)
-            gym_image_id = rs.RaidNearby(-1).get_gym_image_id(i,mg)
+            gym_image_id = rs.RaidNearby(-1).get_gym_image_id(img)
             gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
             if int(fort_id) == int(gym_image_fort_id):
                 print('This gym image is already trained')
