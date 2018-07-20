@@ -45,6 +45,10 @@ class RaidScan:
             session2 = database.Session()
 
             for fort in all_forts:
+                if self.config.SCAN_AREA == 'All':
+                    all_forts_to_download.append(fort.id)
+                    self.all_forts_inside.append(DBFort(fort.id, fort.lat, fort.lon, 0))
+
                 if fort.lat is not None and fort.lon is not None and self.config.SCAN_AREA.contains(Point(fort.lat, fort.lon)):
                     self.all_forts_inside.append(DBFort(fort.id, fort.lat, fort.lon, 0))
 
@@ -106,7 +110,7 @@ class RaidScan:
     def restart_nearby(self, id):
         time.sleep(0.1)
         try:
-            raid_nearby = raidnearby.RaidNearby()
+            raid_nearby = raidnearby.RaidNearby(id)
         except KeyboardInterrupt:
             os.killpg(0, signal.SIGINT)
             sys.exit(1)

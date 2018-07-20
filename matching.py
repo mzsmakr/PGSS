@@ -116,3 +116,43 @@ def fort_image_matching_imshow(url_img_name, fort_img_name):
         return 0.0   
 
     return max_val3
+
+
+def pokemon_image_matching(pokemon_image_name, fort_img_name, is_pokemon):
+
+    pokemon_image = cv2.imread(pokemon_image_name, cv2.IMREAD_UNCHANGED)
+    fort_img = cv2.imread(fort_img_name, 3)
+
+    croped = pokemon_image[0:256,0:190]
+
+    height_f, width_f, channels_f = fort_img.shape
+    scale = 147 / 256 * width_f / 133
+
+    scaled = cv2.resize(croped, None, fx=scale, fy=scale)
+
+    scaled_h, scaled_w, scaled_c = scaled.shape
+    channels = cv2.split(scaled)
+
+    if is_pokemon:
+        scale_crop_fort = width_f / 156
+        target_x = (16*scale_crop_fort)
+        target_y = (28*scale_crop_fort)
+        fort_img = fort_img[target_x-2:target_x+2+scaled_h, target_y-2:target_y+2+scaled_w]
+    else:
+        scale_crop_fort = width_f / 133
+        target_x = int(12*scale_crop_fort)
+        target_y = int(24*scale_crop_fort)
+        fort_img = fort_img[target_x-2:target_x+2+scaled_h, target_y-2:target_y+2+scaled_w]
+
+    scaled_no_alpth = cv2.merge([channels[0], channels[1], channels[2]])
+    transparent_mask = cv2.merge([channels[3], channels[3], channels[3]])
+
+    white_pixels = channels[3].sum()/255
+
+    result = cv2.matchTemplate(fort_img, scaled_no_alpth, cv2.TM_SQDIFF, mask=transparent_mask)
+
+    min_val3, max_val3, min_loc3, max_loc3 = cv2.minMaxLoc(result)
+
+    min_val3 = min_val3 / white_pixels
+
+    return min_val3

@@ -53,7 +53,7 @@ for fullpath_filename in p.glob('*.png'):
         if fort_id.isdecimal()==True:
             print('fort_id:', fort_id)
             img = cv2.imread(str(fullpath_filename),3)
-            gym_image_id = rs.RaidNearby().get_gym_image_id(img)
+            gym_image_id = rs.RaidNearby(-1).get_gym_image_id(i,mg)
             gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
             if int(fort_id) == int(gym_image_fort_id):
                 print('This gym image is already trained')
@@ -85,17 +85,26 @@ for fullpath_filename in p.glob('*.png'):
             
     elif image_name[0] == 'Pokemon':
         pokemon_id, ext = os.path.splitext(image_name[1])
+        if len(image_name) > 2:
+            form, ext = os.path.splitext(image_name[2])
+        else:
+            form = None
         if pokemon_id.isdecimal()==True:
             print('pokemon_id:', pokemon_id)
             img = cv2.imread(str(fullpath_filename),3)
-            pokemon_image_id = rs.RaidNearby().get_pokemon_image_id(img)
+            pokemon_image_id = rs.RaidNearby(-1).get_pokemon_image_id(img)
             pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
-            if int(pokemon_id) == int(pokemon_image_pokemon_id):
+            if int(pokemon_id) == int(pokemon_image_pokemon_id) or Force_update:
                 print('This pokemon image is already trained')
                 os.remove(fullpath_filename)
             else:
-                if int(pokemon_image_pokemon_id) == 0 or Force_update == True:
-                    if db.update_pokemon_image(session,pokemon_image_id,pokemon_id)==True:
+                if int(pokemon_image_pokemon_id) == 0 or Force_update:
+                    form_int = 0
+                    if form is not None and int(form) is not None:
+                        form_int = int(form)
+
+                    print('Form: {}'.format(form_int))
+                    if db.update_pokemon_image(session,pokemon_image_id,pokemon_id,form_int)==True:
                         os.remove(fullpath_filename)
                         pokemon_count = pokemon_count +1
                 else:
@@ -104,8 +113,8 @@ for fullpath_filename in p.glob('*.png'):
                     print('and run raidsubmit.py again')
         elif str(pokemon_id) == 'Not':
             img = cv2.imread(str(fullpath_filename),3)
-            pokemon_image_id = rs.RaidNearby().get_pokemon_image_id(img)
-            if db.update_pokemon_image(session,pokemon_image_id,str(-2))==True:
+            pokemon_image_id = rs.RaidNearby(-1).get_pokemon_image_id(img)
+            if db.update_pokemon_image(session,pokemon_image_id,str(-2), None)==True:
                 fort_dest_file = not_valid_img_path + 'not_valid_pokemon_' + str(pokemon_image_id) + '.png'
                 shutil.move(fullpath_filename, fort_dest_file)
                 print('pokemon image id:', pokemon_image_id, 'is set as not valid')           

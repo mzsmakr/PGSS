@@ -149,7 +149,8 @@ class Raid(Base):
     external_id = Column(BigInteger, unique=True)
     fort_id = Column(Integer, ForeignKey('forts.id'))
     level = Column(TINY_TYPE)
-    pokemon_id = Column(SmallInteger)
+    pokemon_id = Column(SmallInteger,default=0)
+    form =  Column(SmallInteger)
     move_1 = Column(SmallInteger)
     move_2 = Column(SmallInteger)
     time_spawn = Column(Integer, index=True)
@@ -175,6 +176,7 @@ class PokemonImage(Base):
     
     id = Column(Integer, primary_key=True)
     pokemon_id = Column(Integer)
+    form = Column(SmallInteger)
     param_1 = Column(Integer)
     param_2 = Column(Integer)
     param_3 = Column(Integer)
@@ -276,12 +278,13 @@ def update_raid_egg(session, fort_id, level, time_battle):
     raid.cp = 0
     session.commit()
 
-def update_raid_mon(session, fort_id, pokemon_id):
+def update_raid_mon(session, fort_id, pokemon_id, form):
     raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     if raid is None:
         session.add(Raid(fort_id=fort_id))
         raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     raid.pokemon_id = int(pokemon_id)
+    raid.form = form
     raid.move_1 = 133
     raid.move_2 = 133
     raid.cp = 0
@@ -315,7 +318,7 @@ def add_pokemon_image(session,mon_id,mean1,mean2,mean3,mean4,mean5,mean6,mean7):
     session.add(PokemonImage(pokemon_id=mon_id,param_1=mean1,param_2=mean2,param_3=mean3,param_4=mean4,param_5=mean5,param_6=mean6,param_7=mean7,created=int(datetime.datetime.now().timestamp())))
     session.commit()
 
-def update_pokemon_image(session,pokemon_image_id, pokemon_id):
+def update_pokemon_image(session,pokemon_image_id, pokemon_id, form):
     pokemon_image = session.query(PokemonImage).filter_by(id=pokemon_image_id).first()
     session.commit()
     if pokemon_image is None:
@@ -323,6 +326,7 @@ def update_pokemon_image(session,pokemon_image_id, pokemon_id):
         return False
     else:
         pokemon_image.pokemon_id = pokemon_id
+        pokemon_image.form = form
         session.commit()
         LOG.info('pokemon image {} is set to pokemon_id {}'.format(pokemon_image_id,pokemon_id))
         return True        

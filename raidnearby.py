@@ -50,7 +50,7 @@ LOG.addHandler(rfh)
 
 
 class RaidNearby:
-    def __init__(self):
+    def __init__(self, process_id):
 
         if len(argv) >= 2:
             self.config = importlib.import_module(str(argv[1]))
@@ -85,7 +85,7 @@ class RaidNearby:
 
         self.p = Path(self.process_img_path)
 
-        self.timefile = "time.png"
+        self.timefile = "time_{}.png".format(process_id)
         self.level1_num = 328950.0
 
         session = database.Session()
@@ -332,6 +332,7 @@ class RaidNearby:
         
         min_error = 10000000
         mon_id = 0
+        mon_form = None
         mon_image_id = 0
 
         session = database.Session()
@@ -360,6 +361,7 @@ class RaidNearby:
                 min_error = error
                 mon_id = mon.pokemon_id
                 mon_image_id = mon.id
+                mon_form = mon.form
 
         if min_error > 5:
             mon_id = -1
@@ -369,7 +371,7 @@ class RaidNearby:
         session.commit()
         session.close()
 
-        return mon_image_id, mon_id, min_error
+        return mon_image_id, mon_id, mon_form, min_error
 
     def get_pokemon_image_id(self, img):
         ret,bin_img = cv2.threshold(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY),240,255,cv2.THRESH_BINARY_INV)
@@ -596,7 +598,7 @@ class RaidNearby:
                 else:
                     LOG.info('Skip update raid due to old file')
             else:
-                mon_image_id, mon, error_mon = self.detectMon(img_full)
+                mon_image_id, mon, form, error_mon = self.detectMon(img_full)
                 pokemon_id = database.get_raid_pokemon_id(session, gym)
                 if level == -1:
                     LOG.error('level detection failed.')
@@ -609,8 +611,19 @@ class RaidNearby:
                 else:            
                     if int(mon) > 0:
                         if update_raid == True:
+
+                            form_real = 0
+                            if mon == 201:
+                                form_real = form -10
+                            elif mon == 351:
+                                form_real = form +18
+                            elif mon == 386:
+                                form_real = form +22
+                            elif form == 61:
+                                form_real = 37
+
                             try:
-                                database.update_raid_mon(session, gym, mon)
+                                database.update_raid_mon(session, gym, mon, form_real)
                                 database.updata_fort_sighting(session, gym, unix_time)
                                 session.commit()
                                 LOG.info('!!!!! New raid boss is added. !!!!!')
@@ -625,16 +638,16 @@ class RaidNearby:
                     elif int(mon) == 0:
                         LOG.info('Pokemon image params are in database but the Pokemon is not known')
                         unknown_mon_name = 'PokemonImage_'+str(mon_image_id)+'.png'
-                        fullpath_dest = str(self.not_find_path) + str(unknown_mon_name)
+                        fullpath_dest = str(self.copy_path) + str(unknown_mon_name)
                         LOG.info(fullpath_dest)
                         shutil.copy2(raidfilename,fullpath_dest)
                     elif int(mon) == self.not_a_pokemon_id: # -2
-                        LOG.info('Pokemon image is not valid (most likly emply')
+                        LOG.info('Pokemon image is not valid (most likly empty')
                     else: # int(mon) == -1
                         # Send mon image for training directory
                         LOG.info('Mon is not in database')
                         unknown_mon_name = 'PokemonImage_'+str(mon_image_id)+'.png'
-                        fullpath_dest = str(self.not_find_path) + str(unknown_mon_name)
+                        fullpath_dest = str(self.copy_path) + str(unknown_mon_name)
                         LOG.info(fullpath_dest)
                         shutil.copy2(raidfilename,fullpath_dest)
                 processed_pokemon_name = 'Pokemon_' + str(mon) + '_PokemonImages_' + str(mon_image_id) + '.png'
@@ -699,6 +712,8 @@ class RaidNearby:
             while True:
                 LOG.debug('Run raid nearby task')
                 for fullpath_filename in self.p.glob('*.png'):
+                    if "time_" in str(fullpath_filename):
+                        continue
                     if process_count > 1 and not int(hashlib.md5(str(fullpath_filename).encode('utf-8')).hexdigest(),
                                                      16) % process_count == id:
                         continue
