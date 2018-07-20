@@ -56,7 +56,7 @@ Discord bot to download user submitted raid nearby in your discord server. It sa
     ```
     There are many other way to install python3.6. Google it.
 3. Install tesseract 
- * macOS : `brew install tesseract`
+ * macOS : `brew install tesseract` (Install Homebrew if you don't already have it)
  * Linux
     ```
     apt-get update
