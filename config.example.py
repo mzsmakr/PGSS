@@ -40,6 +40,8 @@ from os import path
 DERIVED_DATA_PATH = path.dirname(path.realpath(__file__))+'/DerivedData'
 SCREENSHOT_SAVE_PATH = path.dirname(path.realpath(__file__))+'/DerivedData/Logs/Test/Attachments'
 
+RAID_START_TIME = "06:00"
+RAID_END_TIME = "20:00"
 
 ### RSSBOT ###
 

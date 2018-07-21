@@ -12,6 +12,7 @@ from sys import argv
 from geopy.distance import vincenty
 from time import localtime, strftime
 import signal
+import datetime
 from functools import partial
 
 LOG = getLogger('')
@@ -25,6 +26,18 @@ class TransferObject:
         self.forts_no_raid_priority = []
         self.forts_no_boss = []
         self.forts = []
+        self.teleport_locked = []
+
+    def is_teleport_locked(self, index):
+        return index in self.teleport_locked
+
+    def add_teleport_lock(self, index):
+        if index not in self.teleport_locked:
+            self.teleport_locked.append(index)
+
+    def remove_teleport_lock(self, index):
+        if index in self.teleport_locked:
+            self.teleport_locked.remove(index)
 
     def set_forts(self, forts):
         self.forts = forts
@@ -167,7 +180,7 @@ def update_raids_and_forts(t_obj, lock, forts_static):
             time.sleep(1)
 
 
-def update_device_location(t_obj, lock, device, sleep, forts):
+def update_device_location(t_obj, lock, device, sleep, process_id):
 
     last_teleport = 0
     last_lat = 0
@@ -186,6 +199,12 @@ def update_device_location(t_obj, lock, device, sleep, forts):
 
             lock.acquire()
             locked = True
+            if t_obj.is_teleport_locked(process_id):
+                lock.release()
+                locked = False
+                time.sleep(5)
+                continue
+
             forts_no_boss = t_obj.get_forts_no_boss()
             forts_no_raid = t_obj.get_forts_no_raid()
             forts_no_raid_priority = t_obj.get_forts_no_raid_priority()
@@ -297,16 +316,70 @@ def update_device_location(t_obj, lock, device, sleep, forts):
             time.sleep(1)
 
 
-def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay):
+def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, t_obj, index, lock, ):
+
+    if len(argv) >= 2:
+        config = importlib.import_module(str(argv[1]))
+    else:
+        config = importlib.import_module('config')
+
+    if config.RAID_START_TIME is not None and config.RAID_END_TIME is not None:
+        raid_start_time_hour = int(str(config.RAID_START_TIME).split(':')[0])
+        raid_start_time_minute = int(str(config.RAID_START_TIME).split(':')[1])
+        raid_end_time_hour = int(str(config.RAID_END_TIME).split(':')[0])
+        raid_end_time_minute = int(str(config.RAID_END_TIME).split(':')[1])
+        limit_time = True
+    else:
+        limit_time = False
+
+    did_stop = False
+    is_locked = False
+
     while True:
         try:
-            process = None
-            LOG.info('Starting UITest for Device {}'.format(device_uuid))
             path = os.path.dirname(os.path.realpath(__file__)) + '/../Control'
             log_file = log_path + '/{}_{}_xcodebuild.log'.format(strftime("%Y-%m-%d_%H-%M-%S", localtime()), device_uuid)
             stdout = open(log_file, 'w')
+            if limit_time:
+                now = datetime.datetime.now().astimezone()
+                raid_start_date = now.replace(hour=raid_start_time_hour, minute=raid_start_time_minute)
+                raid_end_date = now.replace(hour=raid_end_time_hour, minute=raid_end_time_minute)
+
+                if not (raid_start_date < now and raid_end_date > now):
+                    if not did_stop:
+                        LOG.info('Stopping UITest for Device {}'.format(device_uuid))
+                        lock.acquire()
+                        is_locked = True
+                        t_obj.add_teleport_lock(index)
+                        lock.release()
+                        is_locked = False
+                        process = subprocess.Popen(
+                            'xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" -derivedDataPath \"{}\" \"TERMINATE=true\"'.format(
+                                device_uuid, str(derived_data_path)),
+                            cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
+                        process.wait()
+                        process = None
+                        did_stop = True
+
+                    time.sleep(60)
+                    continue
+                else:
+                    if did_stop:
+                        lock.acquire()
+                        is_locked = True
+                        t_obj.remove_teleport_lock(index)
+                        lock.release()
+                        is_locked = False
+                        did_stop = False
+
+            LOG.info('Starting UITest for Device {}'.format(device_uuid))
             process = subprocess.Popen('xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" -derivedDataPath \"{}\" \"POKEMON={}\" \"UUID={}\" \"DELAY={}\"'.format(device_uuid, str(derived_data_path), 'false', device_uuid, str(screenshot_delay)), cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
-            process.wait()
+            if limit_time:
+                process.wait(int(raid_end_date.timestamp() - now.timestamp()) + 1)
+            else:
+                process.wait()
+            process = None
+
             LOG.info('UITest for Device {} ended'.format(device_uuid))
         except KeyboardInterrupt:
             if process is not None:
@@ -319,6 +392,9 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay):
             os.killpg(0, signal.SIGINT)
             sys.exit(1)
         except Exception as e:
+            if is_locked:
+                lock.release()
+
             if process is not None:
                 try:
                     process.terminate()
@@ -326,7 +402,7 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay):
                     os.killpg(0, signal.SIGINT)
                     sys.exit(1)
                 except: pass
-            LOG.info('UITest for Device {} crashed with: {}'.format(device_uuid, e))
+            LOG.error('UITest for Device {} crashed with: {}'.format(device_uuid, e))
         time.sleep(1)
 
 
@@ -372,11 +448,11 @@ class DeviceController:
 
             index = 0
             for device in self.devices:
-                uitest_process = Process(target=start_ui_test, args=(device, self.log_path, self.config.DERIVED_DATA_PATH, self.config.SCREENSHOT_DELAYS[index], ))
+                uitest_process = Process(target=start_ui_test, args=(device, self.log_path, self.config.DERIVED_DATA_PATH, self.config.SCREENSHOT_DELAYS[index], t_obj, index, lock, ))
                 uitest_process.start()
                 self.uitest_processes.append(uitest_process)
 
-                tp_process = Process(target=update_device_location, args=(t_obj, lock, device, self.config.TELEPORT_DELAYS[index],  self.forts, ))
+                tp_process = Process(target=update_device_location, args=(t_obj, lock, device, self.config.TELEPORT_DELAYS[index], index, ))
                 tp_process.start()
                 self.teleport_processes.append(tp_process)
 

@@ -298,7 +298,7 @@ class FindFort:
                     session.close()
 
                 for pokemon_fullpath_filename in p.glob('PokemonImage*.png'):
-                    if process_count > 1 and not int(hashlib.md5(str(fort_fullpath_filename).encode('utf-8'))
+                    if process_count > 1 and not int(hashlib.md5(str(pokemon_fullpath_filename).encode('utf-8'))
                        .hexdigest(), 16) % process_count == id:
                         continue
                     new_img_count_pokemon += 1

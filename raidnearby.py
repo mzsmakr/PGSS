@@ -359,8 +359,8 @@ class RaidNearby:
             # find minimum error
             if error < min_error:
                 min_error = error
-                mon_id = mon.pokemon_id
-                mon_image_id = mon.id
+                mon_id = int(mon.pokemon_id)
+                mon_image_id = int(mon.id)
                 mon_form = mon.form
 
         if min_error > 5:
