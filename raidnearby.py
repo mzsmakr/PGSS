@@ -592,8 +592,8 @@ class RaidNearby:
                         except KeyboardInterrupt:
                             os.killpg(0, signal.SIGINT)
                             sys.exit(1)
-                        except:
-                            LOG.error('Error to update raid egg for fort:{}'.format(gym))
+                        except Exception as e:
+                            LOG.error('Error to update raid egg for fort:{} ({})'.format(gym, e))
                             session.rollback()
                 else:
                     LOG.info('Skip update raid due to old file')
@@ -630,8 +630,8 @@ class RaidNearby:
                             except KeyboardInterrupt:
                                 os.killpg(0, signal.SIGINT)
                                 sys.exit(1)
-                            except:
-                                LOG.error('Error to update raid boss for fort:{}'.format(gym))
+                            except Exception as e:
+                                LOG.error('Error to update raid boss for fort:{} ({})'.format(gym, e))
                                 session.rollback()
                         else:
                             LOG.info('Skip update raid due to old file')

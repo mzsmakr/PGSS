@@ -82,7 +82,7 @@ for fullpath_filename in p.glob('*.png'):
                 save_url_img(img, url_full_path_png)
         elif str(fort_id) == 'Not':
             img = cv2.imread(str(fullpath_filename),3)
-            gym_image_id = rs.RaidNearby().get_gym_image_id(img)
+            gym_image_id = rs.RaidNearby(-1).get_gym_image_id(img)
             not_fort_id = db.get_not_a_fort_id(session)
             if db.update_gym_image(session,gym_image_id,not_fort_id) == True:
                 fort_dest_file = not_valid_img_path + 'not_valid_' + str(gym_image_id) + '.png'
@@ -134,8 +134,3 @@ for fullpath_filename in p.glob('*.png'):
 print('Submitted')
 print('  ',fort_count,'gym images')
 print('  ',pokemon_count,'pokemon images')
-                    
-                    
-                    
-            
-                
