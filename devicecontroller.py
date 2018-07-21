@@ -316,7 +316,7 @@ def update_device_location(t_obj, lock, device, sleep, process_id):
             time.sleep(1)
 
 
-def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, t_obj, index, lock, ):
+def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, restart_delay, t_obj, index, lock, ):
 
     if len(argv) >= 2:
         config = importlib.import_module(str(argv[1]))
@@ -373,7 +373,11 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, t_
                         did_stop = False
 
             LOG.info('Starting UITest for Device {}'.format(device_uuid))
-            process = subprocess.Popen('xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" -derivedDataPath \"{}\" \"POKEMON={}\" \"UUID={}\" \"DELAY={}\"'.format(device_uuid, str(derived_data_path), 'false', device_uuid, str(screenshot_delay)), cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
+            process = subprocess.Popen('xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" '
+                                       '-derivedDataPath \"{}\" \"POKEMON={}\" \"UUID={}\" '
+                                       '\"SCREENSHOT_DELAY={}\" \"RESTART_DELAY={}\"'
+                                       .format(device_uuid, str(derived_data_path), 'false', device_uuid,
+                                               str(screenshot_delay), str(restart_delay)), cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
             if limit_time:
                 process.wait(int(raid_end_date.timestamp() - now.timestamp()) + 1)
             else:
@@ -448,7 +452,7 @@ class DeviceController:
 
             index = 0
             for device in self.devices:
-                uitest_process = Process(target=start_ui_test, args=(device, self.log_path, self.config.DERIVED_DATA_PATH, self.config.SCREENSHOT_DELAYS[index], t_obj, index, lock, ))
+                uitest_process = Process(target=start_ui_test, args=(device, self.log_path, self.config.DERIVED_DATA_PATH, self.config.SCREENSHOT_DELAYS[index], self.config.RESTART_DELAYS[index], t_obj, index, lock, ))
                 uitest_process.start()
                 self.uitest_processes.append(uitest_process)
 

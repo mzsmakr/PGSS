@@ -35,6 +35,7 @@ DEVICE_LIST = None
 #DEVICE_LIST = ['168069373365c2dbf9155169cfa3dc2d25068761', 'xxx']
 TELEPORT_DELAYS = [5, 5]
 SCREENSHOT_DELAYS = [0.25, 0.25]
+RESTART_DELAYS = [600, 600]
 
 from os import path
 DERIVED_DATA_PATH = path.dirname(path.realpath(__file__))+'/DerivedData'
