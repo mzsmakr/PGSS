@@ -157,8 +157,23 @@ class RaidNearby:
                                            config='-c tessedit_char_whitelist=1234567890:~AMP -psm 7')
         return text
 
+    def getMonMask(self, img):
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+        # define range of blue color in HSV
+        lower_blue = np.array([94, 130, 70])
+        upper_blue = np.array([114, 160, 110])
+
+        # Threshold the HSV image to get only shadow colors
+        mask = cv2.inRange(hsv, lower_blue, upper_blue)
+        kernel = np.ones((2, 2), np.uint8)
+        mask = cv2.dilate(mask, kernel, iterations=1)
+        final_mask = 255 - cv2.medianBlur(mask, 3) # invert mask
+
+        return final_mask
+
     # Detect gym from raid sighting image
-    def detectGym(self, raid_img):
+    def detectGym(self, raid_img, level):
         height, width, channels = raid_img.shape
         
         org_top_y = 40
@@ -184,13 +199,19 @@ class RaidNearby:
         
         cropTop = raid_img[top_y:top_y+top_h, top_x:top_x+top_w]
         cropLeft = raid_img[left_y:left_y+left_h, left_x:left_x+left_w]
-                
-        top_mean0 = int(cropTop[:,:,0].mean())
-        top_mean1 = int(cropTop[:,:,1].mean())
-        top_mean2 = int(cropTop[:,:,2].mean())
-        left_mean0 = int(cropLeft[:,:,0].mean())
-        left_mean1 = int(cropLeft[:,:,1].mean())
-        left_mean2 = int(cropLeft[:,:,2].mean())
+
+        cropTopMask = self.getMonMask(cropTop)
+        cropLeftMask = self.getMonMask(cropLeft)
+
+        cropTopMean = cv2.mean(cropTop, cropTopMask)
+        cropLeftMean = cv2.mean(cropLeft, cropLeftMask)
+
+        top_mean0 = int(cropTopMean[0]) # int(cropTop[:,:,0].mean(mask = cropTopMask))
+        top_mean1 = int(cropTopMean[1]) # int(cropTop[:,:,1].mean(mask = cropTopMask))
+        top_mean2 = int(cropTopMean[2]) # int(cropTop[:,:,2].mean(mask = cropTopMask))
+        left_mean0 = int(cropLeftMean[0]) # int(cropLeft[:,:,0].mean(mask = cropLeftMask))
+        left_mean1 = int(cropLeftMean[1]) # int(cropLeft[:,:,1].mean(mask = cropLeftMask))
+        left_mean2 = int(cropLeftMean[2]) # int(cropLeft[:,:,2].mean(mask = cropLeftMask))
 
         min_error = 10000000
         gym_id = 0
@@ -224,8 +245,11 @@ class RaidNearby:
                 gym_id = gym.fort_id
                 gym_image_id = gym.id
 
+        error_limit = 7
+        if level == 4:
+            error_limit = 10
 
-        if min_error > 7:
+        if min_error > error_limit:
             LOG.info('gym_id:{} min_error:{}'.format(gym_id, min_error))
             LOG.info('GymImage added to database')
             gym_id = -1
@@ -555,7 +579,7 @@ class RaidNearby:
         else:
             time_text = 'Raid Boss'
         level = self.detectLevel(level_img)
-        gym_image_id, gym, error_gym = self.detectGym(img_full)
+        gym_image_id, gym, error_gym = self.detectGym(img_full, level)
 
         update_raid = True    
         # old file
