@@ -334,6 +334,7 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
 
     did_stop = False
     is_locked = False
+    process = None
 
     while True:
         try:
