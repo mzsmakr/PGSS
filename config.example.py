@@ -32,7 +32,7 @@ RAID_NEARBY_SIZE = [
                      'comp2_x': 162, 'comp2_y': 503, 'crop2_x1': 160, 'crop2_x2': 347,
                      'comp1_x': 255, 'comp1_y': 503, 'crop1_x1': 253},  # iPhone SE
 
-                    {'width': 1080, 'height': 1920, 'crop_w': 270, 'crop_h': 444, 'crop_y1': 850, 'crop_y2': 1342,
+                    {'width': 1242, 'height': 2208, 'crop_w': 259, 'crop_h': 424, 'crop_y1': 850, 'crop_y2': 1342,
                      'comp3_x': 133, 'comp3_y': 980, 'crop3_x1': 130, 'crop3_x2': 492, 'crop3_x3': 854,
                      'comp2_x': 313, 'comp2_y': 980, 'crop2_x1': 310, 'crop2_x2': 672,
                      'comp1_x': 495, 'comp1_y': 980, 'crop1_x1': 492},  # iPhone Plus
