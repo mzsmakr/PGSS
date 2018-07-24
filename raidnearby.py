@@ -19,6 +19,9 @@ from sys import argv
 import importlib
 import hashlib
 import signal
+import config as conf
+import json
+import requests
 
 logpath = os.getcwd()+'/logs/'
 log_path = os.path.dirname(logpath)
@@ -47,6 +50,64 @@ rfh = handlers.RotatingFileHandler(
 rfh.setLevel(CRITICAL)
 rfh.setFormatter(logFormatter)
 LOG.addHandler(rfh)
+wh_send_dict = dict()
+
+LOG.info('Pokemon Screenshot Raid Scan Started')
+
+
+def exception_handler(loop, context):
+    loop.default_exception_handler(context)
+    exception = context.get('exception')
+    if isinstance(exception, Exception):
+        LOG.error("Found unhandeled exception. Stoping...")
+        loop.stop()
+
+
+def send_webhook(fort_id, lvl, poke_id, end, type_):
+    if fort_id in wh_send_dict:
+        if wh_send_dict[fort_id]["poke_id"] == poke_id:
+            LOG.info("Webhook: Raid was already send earlier")
+            return
+        else:
+            external_id = wh_send_dict[fort_id]["ext_id"]
+            lat = wh_send_dict[fort_id]["lat"]
+            lon = wh_send_dict[fort_id]["lon"]
+            name = wh_send_dict[fort_id]["name"]
+            sponsor = wh_send_dict[fort_id]["sponsor"]
+            wh_send_dict[fort_id]["poke_id"] = poke_id
+    else:
+        session = database.Session()
+        fort = database.get_fort(session, fort_id)
+        external_id = fort.external_id
+        lat = fort.lat
+        lon = fort.lon
+        name = fort.name
+        sponsor = fort.sponsor
+        wh_send_dict[fort_id] = {
+            "ext_id": external_id,
+            "lat": lat,
+            "lon": lon,
+            "name": name,
+            "sponsor": sponsor,
+            "poke_id": poke_id
+        }
+    payload_raw = conf.WH_PAYLOAD.format(
+        ext_id=external_id,
+        lat=lat,
+        lon=lon,
+        name_id=name,
+        sponsor=sponsor,
+        poke_id=poke_id,
+        lvl=lvl,
+        end=end,
+        type_=type_)
+    payload = json.loads(payload_raw)
+
+    response = requests.post(
+        conf.WEBHOOK, data=json.dumps(payload),
+        headers={'Content-Type': 'application/json'}
+    )
+    LOG.info('Webhook is send.')
 
 
 class RaidNearby:
@@ -613,6 +674,8 @@ class RaidNearby:
                             database.updata_fort_sighting(session, gym, unix_time)
                             session.commit()
                             LOG.info('***** New Egg is added. *****')
+                            if conf.SEND_WEBHOOK:
+                                send_webhook(gym, level, 0, end_time, "raid")
                         except KeyboardInterrupt:
                             os.killpg(0, signal.SIGINT)
                             sys.exit(1)
@@ -651,6 +714,8 @@ class RaidNearby:
                                 database.updata_fort_sighting(session, gym, unix_time)
                                 session.commit()
                                 LOG.info('!!!!! New raid boss is added. !!!!!')
+                                if conf.SEND_WEBHOOK:
+                                    send_webhook(gym, level, mon, end_time, "raid")
                             except KeyboardInterrupt:
                                 os.killpg(0, signal.SIGINT)
                                 sys.exit(1)

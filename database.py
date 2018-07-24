@@ -412,3 +412,5 @@ def get_fort_ids_within_range(session, forts, range, lat, lon):
 
     return ids
 
+def get_fort(session, fort_id):
+    return session.query(Fort).filter_by(id=fort_id).first()
