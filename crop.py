@@ -57,6 +57,15 @@ class Crop:
         self.diff_threshold = 10000
 
     def crop_img(self, fullpath_filename):
+        
+        now = datetime.datetime.now()
+        unix_time = int(now.timestamp())
+        file_update_time = int(os.stat(str(fullpath_filename)).st_mtime)
+        if unix_time - file_update_time > 1800:
+            LOG.info('Attachment File is too old')
+            os.remove(fullpath_filename)
+            return
+ 
         filename = os.path.basename(fullpath_filename)
         filename, ext = os.path.splitext(filename)
         img = cv2.imread(str(fullpath_filename), 3)
