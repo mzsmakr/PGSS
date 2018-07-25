@@ -150,7 +150,7 @@ def update_raids_and_forts(t_obj, lock, forts_static):
                     if fort.id == raid.fort_id:
                         hasRaid = True
                         if (raid.pokemon_id is None or raid.pokemon_id == 0) and raid.time_battle <= time.time():
-                            if raid.time_battle + 300 >= time.time():
+                            if raid.time_battle + 1200 >= time.time():
                                 forts_no_boss.append(fort)
                             else:
                                 hasRaid = False
@@ -232,12 +232,12 @@ def update_device_location(t_obj, lock, device, sleep, process_id):
                     index += 1
 
                     if close_fort_id in [fort.id for fort in forts_no_boss]:
-                        lock_time = 30
+                        lock_time = 60
                         close_forts = [fort for fort in forts_no_boss if fort.id == close_fort_id]
                         close_fort = close_forts[0]
                         forts_no_boss.remove(close_fort)
                     elif close_fort_id in [fort.id for fort in forts_no_raid_all]:
-                        lock_time = 120
+                        lock_time = 180
                         close_forts = [fort for fort in forts_no_raid_all if fort.id == close_fort_id]
                         close_fort = close_forts[0]
                         try: forts_no_raid.remove(close_fort)
