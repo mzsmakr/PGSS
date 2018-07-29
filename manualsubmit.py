@@ -9,8 +9,8 @@ import raidnearby as rs
 
 Force_update = False
 print(len(argv))
-if len(argv) >= 2:
-    if str(argv[1]) == 'force':
+if len(argv) >= 3:
+    if str(argv[2]) == 'force':
         Force_update = True
 
 session = db.Session()
