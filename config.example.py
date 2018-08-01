@@ -69,23 +69,28 @@ MAP_END = (0,0)
 
 # Webhook
 SEND_WEBHOOK = False
-WEBHOOK = 'https://yourwebhook'
+WEBHOOK = 'http://yourweb.hook'
 
 # !!! non replacement '{' must be escaped by a second one infront of it !!!
 WH_PAYLOAD = """
     [{{
       "message": {{
-        "gym_id": "{ext_id}",
+        "name": "{name_id}",
         "latitude": {lat},
         "longitude": {lon},
         "level": {lvl},
         "pokemon_id": {poke_id},
-        "end": {end}
+        "raid_end": {end},
+        "raid_begin": {hatch_time},
+        "cp": {cp},
+        "move_1": {move_1},
+        "move_2": {move_2},
+        "gymid": "{ext_id}",
+        "team": {team}
       }},
-      "type": "{type_}"
-    }}]
+      "type": "{type}"
+   }} ]
 """
-
 ### RSSBOT ###
 
 RAID_IMAGE_CHANNELS = ('channel_id_1', 'channel_id_2')      #limit users to using the bot in this channel, right click and copy ID.

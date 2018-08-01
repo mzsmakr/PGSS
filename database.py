@@ -250,6 +250,18 @@ def get_raid_battle_time(session, fort_id):
         raid.time_battle = 0
     return raid.time_battle
 
+def get_raid_time(session, fort_id):
+    raid = session.query(Raid).filter_by(fort_id=fort_id).first()
+    session.commit()
+    if raid is None:
+        session.add(Raid(fort_id=fort_id))
+        session.commit()
+        raid = session.query(Raid).filter_by(fort_id=fort_id).first()
+        raid.time_end = 0
+    if raid.time_end is None:
+        raid.time_end = 0
+    return raid.time_end
+
 def get_raid_pokemon_id(session, fort_id):
     raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     session.commit()
@@ -364,6 +376,11 @@ def get_pokemon_image_pokemon_id(session, pokemon_image_id):
     else:
         return pokemon_image.pokemon_id
 
+def get_fort(session, fort_id):
+    fort = session.query(Fort).filter_by(id=fort_id).first()
+    session.commit()
+    return fort
+
 def get_forts(session):
     forts = session.query(Fort).all()
     return forts
@@ -374,6 +391,13 @@ def get_raids_for_forts(session, forts):
         .filter(Raid.time_end >= time.time() - 1800)\
         .all()
     return raids
+
+def get_raid_from_fort(session, fort):
+    raid = session.query(Raid)\
+        .filter(Raid.fort_id == fort)\
+        .first()
+    session.commit()
+    return raid
 
 def add_device_location_history(session, device_uuid, timestamp, lat, lon):
     session.add(DeviceLocationHistory(device_uuid=device_uuid, timestamp=timestamp, lat=lat, lon=lon))
@@ -411,6 +435,3 @@ def get_fort_ids_within_range(session, forts, range, lat, lon):
     DBCache.fort_ids_within_range.append(cache_object)
 
     return ids
-
-def get_fort(session, fort_id):
-    return session.query(Fort).filter_by(id=fort_id).first()
