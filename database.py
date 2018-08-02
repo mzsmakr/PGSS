@@ -257,6 +257,7 @@ def get_raid_time(session, fort_id):
         session.add(Raid(fort_id=fort_id))
         session.commit()
         raid = session.query(Raid).filter_by(fort_id=fort_id).first()
+        session.commit()
         raid.time_end = 0
     if raid.time_end is None:
         raid.time_end = 0
@@ -269,6 +270,7 @@ def get_raid_pokemon_id(session, fort_id):
         session.add(Raid(fort_id=fort_id))
         session.commit()
         raid = session.query(Raid).filter_by(fort_id=fort_id).first()
+        session.commit()
         raid.pokemon_id = -1
     if raid.pokemon_id is None:
         raid.pokemon_id = -1
