@@ -355,8 +355,8 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
                         lock.release()
                         is_locked = False
                         process = subprocess.Popen(
-                            'xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" -derivedDataPath \"{}\" \"TERMINATE=true\"'.format(
-                                device_uuid, str(derived_data_path)),
+                            'xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" -derivedDataPath \"{}\" \"TERMINATE=true\" \"CONFIGURATION_BUILD_DIR={}/Build/{}\"'.format(
+                                device_uuid, str(derived_data_path), str(derived_data_path),  str(device_uuid)),
                             cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
                         process.wait()
                         process = None
@@ -376,9 +376,10 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
             LOG.info('Starting UITest for Device {}'.format(device_uuid))
             process = subprocess.Popen('xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" '
                                        '-derivedDataPath \"{}\" \"POKEMON={}\" \"UUID={}\" '
-                                       '\"SCREENSHOT_DELAY={}\" \"RESTART_DELAY={}\"'
+                                       '\"SCREENSHOT_DELAY={}\" \"RESTART_DELAY={}\" '
+                                       '\"CONFIGURATION_BUILD_DIR={}/Build/{}\"'
                                        .format(device_uuid, str(derived_data_path), 'false', device_uuid,
-                                               str(screenshot_delay), str(restart_delay)), cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
+                                               str(screenshot_delay), str(restart_delay), str(derived_data_path), str(device_uuid)), cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
             if limit_time:
                 process.wait(int(raid_end_date.timestamp() - now.timestamp()) + 1)
             else:
