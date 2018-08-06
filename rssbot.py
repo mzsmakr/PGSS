@@ -37,7 +37,8 @@ async def on_message(message):
                             with open(attachment['filename'], 'wb') as f:
                                 f.write(img)
                                 print(attachment['filename'], 'saved')
-                            save_path = SCREENSHOT_SAVE_PATH+'/'+attachment['filename']
+                            file_name_save = str(attachment['filename']).replace('_', '-')
+                            save_path = SCREENSHOT_SAVE_PATH+'/'+file_name_save
                             print(save_path)
                             shutil.move(attachment['filename'], save_path)
     
