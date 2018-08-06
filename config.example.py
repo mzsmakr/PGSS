@@ -62,6 +62,35 @@ SCREENSHOT_SAVE_PATH = path.dirname(path.realpath(__file__))+'/DerivedData/Logs/
 RAID_START_TIME = "06:00"
 RAID_END_TIME = "20:00"
 
+# the corner points of a rectangle for download gym url image
+# If either of them is (0, 0) then download all gym url image in database
+MAP_START = (0,0)
+MAP_END = (0,0)
+
+# Webhook
+SEND_WEBHOOK = False
+WEBHOOK = 'http://yourweb.hook'
+
+# !!! non replacement '{' must be escaped by a second one infront of it !!!
+WH_PAYLOAD = """
+    [{{
+      "message": {{
+        "name": "{name_id}",
+        "latitude": {lat},
+        "longitude": {lon},
+        "level": {lvl},
+        "pokemon_id": {poke_id},
+        "raid_end": {end},
+        "raid_begin": {hatch_time},
+        "cp": {cp},
+        "move_1": {move_1},
+        "move_2": {move_2},
+        "gymid": "{ext_id}",
+        "team": {team}
+      }},
+      "type": "{type}"
+   }} ]
+"""
 ### RSSBOT ###
 
 RAID_IMAGE_CHANNELS = ('channel_id_1', 'channel_id_2')      #limit users to using the bot in this channel, right click and copy ID.

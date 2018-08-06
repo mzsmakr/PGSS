@@ -1,16 +1,20 @@
+import asyncio
+import datetime
+import json
+import math
+import os
+import re
+import requests
+import shutil
 import sys
-import cv2
+import time
+
 import numpy as np
 from pathlib import Path
-import os
-import time
-import math
-import shutil
 from PIL import Image
 import pytesseract
-import datetime
 from logging import basicConfig, getLogger, FileHandler, StreamHandler, DEBUG, INFO, ERROR, CRITICAL, Formatter, handlers
-import time
+import cv2
 import database
 from multiprocessing import Process
 import asyncio
@@ -47,6 +51,8 @@ rfh = handlers.RotatingFileHandler(
 rfh.setLevel(CRITICAL)
 rfh.setFormatter(logFormatter)
 LOG.addHandler(rfh)
+
+wh_send_dict = dict()
 
 
 class RaidNearby:
@@ -601,7 +607,7 @@ class RaidNearby:
                     shutil.move(raidfilename,fullpath_dest)
                     return False
                 #spawn_time = hatch_time - 3600
-                #end_time = hatch_time + 2700
+                end_time = hatch_time + 2700
                 time_battle = database.get_raid_battle_time(session, gym)
                 LOG.info('Egg: level={} time_text={} gym={} error_gym={} hatch_time={} time_battle={}'.format(level, time_text, gym, error_gym, hatch_time, time_battle))
                 if update_raid == True:
@@ -613,6 +619,8 @@ class RaidNearby:
                             database.updata_fort_sighting(session, gym, unix_time)
                             session.commit()
                             LOG.info('***** New Egg is added. *****')
+                            if self.config.SEND_WEBHOOK:
+                                self.send_webhook(gym, level, 0, end_time, "raid")
                         except KeyboardInterrupt:
                             os.killpg(0, signal.SIGINT)
                             sys.exit(1)
@@ -624,6 +632,8 @@ class RaidNearby:
             else:
                 mon_image_id, mon, form, error_mon = self.detectMon(img_full)
                 pokemon_id = database.get_raid_pokemon_id(session, gym)
+                end_time = database.get_raid_time(session, gym)
+
                 if level == -1:
                     LOG.error('level detection failed.')
                     fullpath_dest = str(self.not_find_path) + 'Level_Failed_Fort_' + str(gym) + '_GymImages_' + str(gym_image_id) + '.png'
@@ -651,6 +661,8 @@ class RaidNearby:
                                 database.updata_fort_sighting(session, gym, unix_time)
                                 session.commit()
                                 LOG.info('!!!!! New raid boss is added. !!!!!')
+                                if self.config.SEND_WEBHOOK:
+                                    self.send_webhook(gym, level, mon, end_time, "raid")
                             except KeyboardInterrupt:
                                 os.killpg(0, signal.SIGINT)
                                 sys.exit(1)
@@ -725,6 +737,78 @@ class RaidNearby:
         #cv2.imshow('raid_image', img_full)
         #cv2.waitKey(0)
         return True
+
+    def send_webhook(self, fort_id, lvl, poke_id, end, type_):
+        battle_start = end
+        if fort_id in wh_send_dict:
+            if wh_send_dict[fort_id]["poke_id"] == poke_id:
+                LOG.info("Webhook: Raid was already send earlier")
+                return
+            else:
+                external_id = wh_send_dict[fort_id]["ext_id"]
+                lat = wh_send_dict[fort_id]["lat"]
+                lon = wh_send_dict[fort_id]["lon"]
+                name = wh_send_dict[fort_id]["name"]
+                sponsor = wh_send_dict[fort_id]["sponsor"]
+                move_1 = wh_send_dict[fort_id]["move_1"]
+                move_2 = wh_send_dict[fort_id]["move_2"]
+                cp = wh_send_dict[fort_id]["cp"]
+                form = wh_send_dict[fort_id]["form"]
+                wh_send_dict[fort_id]["poke_id"] = poke_id
+        else:
+            session = database.Session()
+            fort = database.get_fort(session, fort_id)
+            raid = database.get_raid_from_fort(session, fort_id)
+            external_id = fort.external_id
+            lat = fort.lat
+            lon = fort.lon
+            name = fort.name
+            sponsor = fort.sponsor
+            move_1 = raid.move_1
+            move_2 = raid.move_2
+            cp = raid.cp
+            form = raid.form
+            wh_send_dict[fort_id] = {
+                "ext_id": external_id,
+                "lat": lat,
+                "lon": lon,
+                "name": name,
+                "sponsor": sponsor,
+                "poke_id": poke_id,
+                "move_1": move_1,
+                "move_2": move_2,
+                "cp": cp,
+                "form": form
+            }
+        # FIXME
+        # team is neither in forts nor raids table.
+        # I currently dont want to access another table just for
+        # a value which isnt even right.
+        # But some Webhooks need this value so:
+        team = 0
+        payload_raw = self.config.WH_PAYLOAD.format(
+            ext_id=external_id,
+            lat=lat,
+            lon=lon,
+            name_id=name,
+            sponsor=sponsor,
+            poke_id=poke_id,
+            lvl=lvl,
+            end=end,
+            hatch_time=end-2700,
+            move_1 = move_1,
+            move_2 = move_2,
+            cp = cp,
+            form = form,
+            team = team,
+            type=type_)
+        payload = json.loads(payload_raw)
+
+        response = requests.post(
+            self.config.WEBHOOK, data=json.dumps(payload),
+            headers={'Content-Type': 'application/json'}
+        )
+        LOG.info('Webhook is send.')
 
     def main(self, raidscan, id):
         try:
