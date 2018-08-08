@@ -45,7 +45,7 @@ class RaidScan:
             session2 = database.Session()
 
             for fort in all_forts:
-                if self.config.SCAN_AREA == 'All':
+                if fort.lat is not None and fort.lon is not None and self.config.SCAN_AREA == 'All':
                     all_forts_to_download.append(fort.id)
                     self.all_forts_inside.append(DBFort(fort.id, fort.lat, fort.lon, 0))
                     continue
