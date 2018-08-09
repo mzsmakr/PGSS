@@ -293,12 +293,19 @@ class RaidNearby:
         cropTop = raid_img[top_y:top_y+top_h, top_x:top_x+top_w]
         cropLeft = raid_img[left_y:left_y+left_h, left_x:left_x+left_w]
             
-        top_mean0 = int(cropTop[:,:,0].mean())
-        top_mean1 = int(cropTop[:,:,1].mean())
-        top_mean2 = int(cropTop[:,:,2].mean())
-        left_mean0 = int(cropLeft[:,:,0].mean())
-        left_mean1 = int(cropLeft[:,:,1].mean())
-        left_mean2 = int(cropLeft[:,:,2].mean())
+        cropTopMask = self.getMonMask(cropTop)
+        cropLeftMask = self.getMonMask(cropLeft)
+
+        cropTopMean = cv2.mean(cropTop, cropTopMask)
+        cropLeftMean = cv2.mean(cropLeft, cropLeftMask)
+
+        top_mean0 = int(cropTopMean[0]) # int(cropTop[:,:,0].mean(mask = cropTopMask))
+        top_mean1 = int(cropTopMean[1]) # int(cropTop[:,:,1].mean(mask = cropTopMask))
+        top_mean2 = int(cropTopMean[2]) # int(cropTop[:,:,2].mean(mask = cropTopMask))
+        left_mean0 = int(cropLeftMean[0]) # int(cropLeft[:,:,0].mean(mask = cropLeftMask))
+        left_mean1 = int(cropLeftMean[1]) # int(cropLeft[:,:,1].mean(mask = cropLeftMask))
+        left_mean2 = int(cropLeftMean[2]) # int(cropLeft[:,:,2].mean(mask = cropLeftMask))
+
         LOG.debug('gym image param: {} {} {} {} {} {}'.format(top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2))
         session = database.Session()
         gym_image_id = database.get_gym_image_id(session,top_mean0,top_mean1,top_mean2,left_mean0,left_mean1,left_mean2)
