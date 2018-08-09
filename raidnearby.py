@@ -711,9 +711,12 @@ class RaidNearby:
             fullpath_dest = str(self.copy_path) + str(unknown_gym_name)
             LOG.info(fullpath_dest)
             shutil.copy2(raidfilename,fullpath_dest)
-        elif int(gym) == -1 and egg == True: # int(gym) < 0
+        elif int(gym) == -1: # int(gym) < 0
             # Send gym image for training directory
-            LOG.info('New unknown gym with egg. Send to unknown_img to find Gym.')
+            if egg == True:
+                LOG.info('New unknown gym with egg. Send to unknown_img to find Gym.')
+            else:
+                LOG.info('New unknown gym with Raid Boss. Send to unknown_img to find Gym.')
 
             parts = str(filename_no_ext).split('_')
             if len(parts) >= 3:
@@ -725,8 +728,8 @@ class RaidNearby:
             fullpath_dest = str(self.copy_path) + str(unknown_gym_name)
             LOG.info(fullpath_dest)
             shutil.copy2(raidfilename,fullpath_dest)
-        elif int(gym) == -1 and egg == False:
-            LOG.info('Unknown gym with Raid Boss. Need egg with this Gym to identify')
+#        elif int(gym) == -1 and egg == False:
+#            LOG.info('Unknown gym with Raid Boss. Send to unknown_img to find Gym.')
 #            unknown_gym_name = 'GymImage_'+str(gym_image_id)+'.png'
 #            fullpath_dest = str(self.not_find_path) + str(unknown_gym_name)
 #            LOG.info(fullpath_dest)
