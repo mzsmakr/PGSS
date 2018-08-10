@@ -93,5 +93,5 @@ WH_PAYLOAD = """
 """
 ### RSSBOT ###
 
-RAID_IMAGE_CHANNELS = ('channel_id_1', 'channel_id_2')      #limit users to using the bot in this channel, right click and copy ID.
+RAID_IMAGE_CHANNELS = ['channel_id_1', 'channel_id_2']      #limit users to using the bot in this channel, right click and copy ID.
 TOKEN= ''                                                   #discord bot token (NOT bot ID)
