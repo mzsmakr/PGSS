@@ -106,7 +106,7 @@ for fullpath_filename in p.glob('*.png'):
                 pokemon_image_id = nearby.get_pokemon_image_id(img)
                 pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
 
-            if int(pokemon_id) == int(pokemon_image_pokemon_id) or Force_update:
+            if int(pokemon_id) == int(pokemon_image_pokemon_id):
                 print('This pokemon image is already trained')
                 os.remove(fullpath_filename)
             else:
