@@ -266,15 +266,20 @@ def get_raid_time(session, fort_id):
 def get_raid_pokemon_id(session, fort_id):
     raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     session.commit()
+    pokemon_id_null = False
     if raid is None:
         session.add(Raid(fort_id=fort_id))
         session.commit()
         raid = session.query(Raid).filter_by(fort_id=fort_id).first()
         session.commit()
-        raid.pokemon_id = -1
+        pokemon_id_null = True
     if raid.pokemon_id is None:
-        raid.pokemon_id = -1
-    return raid.pokemon_id
+        pokemon_id_null = True
+
+    if pokemon_id_null == True:
+        return -1
+    else:
+        return raid.pokemon_id
     
 def update_raid_egg(session, fort_id, level, time_battle):
     raid = session.query(Raid).filter_by(fort_id=fort_id).first()
@@ -296,12 +301,15 @@ def update_raid_mon(session, fort_id, pokemon_id, form):
     raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     if raid is None:
         session.add(Raid(fort_id=fort_id))
+        session.commit()
         raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     raid.pokemon_id = int(pokemon_id)
     raid.form = form
     raid.move_1 = 133
     raid.move_2 = 133
     raid.cp = 0
+    session.commit()
+
 
 def updata_fort_sighting(session, fort_id, unix_time):
     fort_sighting = session.query(FortSighting).filter_by(fort_id=fort_id).first()
