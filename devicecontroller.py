@@ -388,7 +388,7 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
             process = None
             timestamp_end = time.time()
             if timestamp_start + 60 > timestamp_end:
-                LOG.error('UITest for Device {} ended after under 60 seconds'.format(device_uuid))
+                LOG.error('UITest for Device {} ended after under 60 seconds (Check your latest xcodebuild.log)'.format(device_uuid))
             else:
                 LOG.info('UITest for Device {} ended after {} seconds'.format(device_uuid, str(int(timestamp_end - timestamp_start))))
             
