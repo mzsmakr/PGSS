@@ -338,6 +338,7 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
 
     while True:
         try:
+            timestamp_start = time.time()
             path = os.path.dirname(os.path.realpath(__file__)) + '/../Control'
             log_file = log_path + '/{}_{}_xcodebuild.log'.format(strftime("%Y-%m-%d_%H-%M-%S", localtime()), device_uuid)
             stdout = open(log_file, 'w')
@@ -348,7 +349,7 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
 
                 if not (raid_start_date < now and raid_end_date > now):
                     if not did_stop:
-                        LOG.info('Stopping UITest for Device {}'.format(device_uuid))
+                        LOG.info('Stopping UITest for Device {} (Outside RAID_TIME)'.format(device_uuid))
                         lock.acquire()
                         is_locked = True
                         t_obj.add_teleport_lock(index)
@@ -385,8 +386,13 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
             else:
                 process.wait()
             process = None
-
-            LOG.info('UITest for Device {} ended'.format(device_uuid))
+            timestamp_end = time.time()
+            if timestamp_start + 60 > timestamp_end:
+                LOG.error('UITest for Device {} ended after under 60 seconds'.format(device_uuid))
+            else:
+                LOG.info('UITest for Device {} ended after {} seconds'.format(device_uuid, str(int(timestamp_end - timestamp_start))))
+            
+        
         except KeyboardInterrupt:
             if process is not None:
                 try:
@@ -408,7 +414,7 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
                     os.killpg(0, signal.SIGINT)
                     sys.exit(1)
                 except: pass
-            LOG.error('UITest for Device {} crashed with: {}'.format(device_uuid, e))
+            LOG.error('UITest Task for Device {} crashed with: {}'.format(device_uuid, e))
         time.sleep(1)
 
 
