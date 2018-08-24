@@ -702,14 +702,14 @@ class RaidNearby:
             shutil.copy2(raidfilename, processed_file_dest)                
         elif int(gym) == self.not_a_fort_id:
             LOG.info('Raid image is not valid')
-        elif int(gym) == self.unknown_fort_id and egg == True:
+        elif int(gym) == self.unknown_fort_id:
             # Send Image to Training Directory
             LOG.debug('unknown fort id:{}'.format(self.unknown_fort_id))
             LOG.debug('    gym fort id:{}'.format(gym))
             LOG.info('Gym image params are in database but the Gym is not known. Fort_id:{}'.format(gym))
 
             parts = str(filename_no_ext).split('_')
-            if len(parts) >= 3:
+            if len(parts) >= 3 and len(parts[0]) == 40 and len(parts[1]) == 10:
                 detect_help_string = '_{}_{}'.format(parts[0],parts[1])
             else:
                 detect_help_string = ''
@@ -726,7 +726,7 @@ class RaidNearby:
                 LOG.info('New unknown gym with Raid Boss. Send to unknown_img to find Gym.')
 
             parts = str(filename_no_ext).split('_')
-            if len(parts) >= 3:
+            if len(parts) >= 3 and len(parts[0]) == 40 and len(parts[1]) == 10:
                 detect_help_string = '_{}_{}'.format(parts[0],parts[1])
             else:
                 detect_help_string = ''
