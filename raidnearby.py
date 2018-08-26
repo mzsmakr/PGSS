@@ -489,6 +489,10 @@ class RaidNearby:
         hour_min[1] = hour_min[1].replace('O','0')
         hour_min[1] = hour_min[1].replace('o','0')
         hour_min[1] = hour_min[1].replace('A','4')
+        if len(hour_min[0]) > 2:
+            hour_min[0] = hour_min[0][0:2]
+        if len(hour_min[1]) > 2:
+            hour_min[1] = hour_min[1][0:2]
         if str(hour_min[0]).isdecimal()==True and str(hour_min[1]).isdecimal()==True:
             return True, hour_min
         else:
