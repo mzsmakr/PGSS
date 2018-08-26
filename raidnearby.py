@@ -140,15 +140,16 @@ class RaidNearby:
         letter_start = []
         letter_end = []
         count = 0
+        valley_threshold = 256
         # get letters separation pixels
         for i in range(time_binary.shape[1]):
             sum_vertical = sum(time_binary[:, i])
             profile.append(sum_vertical)
             if len(letter_start) == len(letter_end):
-                if sum_vertical > 0:
+                if sum_vertical > valley_threshold:
                     letter_start.append(i)
             else:
-                if sum_vertical == 0:
+                if sum_vertical <= valley_threshold:
                     letter_end.append(i)
                     count = count + 1
         # Add blank(black) space between letters
