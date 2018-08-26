@@ -238,7 +238,7 @@ class FindFort:
                     url_result_file = os.getcwd() + '/not_find_img/Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
                     shutil.move(fort_fullpath_filename, fort_result_file)
                     shutil.copy(max_url_fullpath_filename, url_result_file)
-        elif float(max_value) >= 0.60:
+        elif float(max_value) >= 0.40:
             fort_result_file = os.getcwd() + '/not_find_img/LowConfidence_Fort_' + str(max_fort_id) + '_GymImages_' + str(gym_image_id) + '_' + '{:.3f}'.format(max_value) + '.png'
             url_result_file = os.getcwd() + '/not_find_img/LowConfidence_Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
             shutil.move(fort_fullpath_filename, fort_result_file)
