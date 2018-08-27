@@ -115,7 +115,10 @@ class FindFort:
         max_fort_id = 0
         max_value = 0.0
         max_url_fullpath_filename = ''
-
+        max_fort_id_1 = 0
+        max_value_1 = 0.0
+        max_url_fullpath_filename_1 = ''
+        matching_threshold = 0.7
         parts = str(fort_filename.replace('.jpg', '').replace('.png', '')).split('_')
 
         if len(parts) >= 3:
@@ -193,11 +196,46 @@ class FindFort:
                         max_url_fullpath_filename = url_fullpath_filename
     #            await asyncio.sleep(0.01)
 
+        if float(max_value) < matching_threshold:
+            for url_fullpath_filename in p_url.glob('*'):
+
+                url_filename = os.path.basename(url_fullpath_filename)
+                url_filename, url_filename_ext = os.path.splitext(url_filename)
+
+                if url_filename_ext != '.png' and url_filename_ext != '.jpg':
+                    continue
+
+                if limit_forts is not None and len(limit_forts) != 0:
+                    if int(url_filename) not in limit_forts:
+                        continue
+
+                if url_filename_ext == '.jpg' or url_filename_ext == '.png':
+                    try:
+                        result_1 = mt.fort_image_matching(str(url_fullpath_filename), str(fort_fullpath_filename), 1)
+                    except KeyboardInterrupt:
+                        os.killpg(0, signal.SIGINT)
+                        sys.exit(1)
+                    except:
+                        LOG.error('Matching error with {}'.format(str(url_fullpath_filename)))
+                    else:
+                        url_filename = os.path.basename(url_fullpath_filename)
+                        fort_id, ext = os.path.splitext(url_filename)
+                        #            print('fort_id:',fort_id,'result:',result,'max_value:',max_value, 'max_fort_id:', max_fort_id)
+                        if result_1 >= max_value_1:
+                            max_value_1 = result_1
+                            max_fort_id_1 = fort_id
+                            max_url_fullpath_filename_1 = url_fullpath_filename
+
+        if max_value_1 > max_value:
+            max_value = max_value_1
+            max_fort_id = max_fort_id_1
+            max_url_fullpath_filename = max_url_fullpath_filename_1
+
         LOG.info('fort_filename:{} max_fort_id: {} max_value: {}'.format(fort_filename,max_fort_id, max_value))
         img = cv2.imread(str(fort_fullpath_filename), 3)
         gym_image_id = self.raidnearby.get_gym_image_id(img)
         gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
-        if float(max_value) >= 0.7:
+        if float(max_value) >= matching_threshold:
             LOG.info(str(fort_fullpath_filename))
             if gym_image_fort_id is not None and int(max_fort_id) == int(gym_image_fort_id):
                 LOG.info('This gym image is already trained')
