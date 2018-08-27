@@ -356,7 +356,7 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
                         lock.release()
                         is_locked = False
                         process = subprocess.Popen(
-                            'xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" -derivedDataPath \"{}\" \"TERMINATE=true\" \"CONFIGURATION_BUILD_DIR={}/Build/{}\"'.format(
+                            'xcodebuild test -scheme \"RDRaidMapCtrl\" -allowProvisioningUpdates -destination \"id={}\" -derivedDataPath \"{}\" \"TERMINATE=true\" \"CONFIGURATION_BUILD_DIR={}/Build/{}\"'.format(
                                 device_uuid, str(derived_data_path), str(derived_data_path),  str(device_uuid)),
                             cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
                         process.wait()
@@ -375,7 +375,7 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
                         did_stop = False
 
             LOG.info('Starting UITest for Device {}'.format(device_uuid))
-            process = subprocess.Popen('xcodebuild test -scheme \"RDRaidMapCtrl\" -destination \"id={}\" '
+            process = subprocess.Popen('xcodebuild test -scheme \"RDRaidMapCtrl\" -allowProvisioningUpdates -destination \"id={}\" '
                                        '-derivedDataPath \"{}\" \"POKEMON={}\" \"UUID={}\" '
                                        '\"SCREENSHOT_DELAY={}\" \"RESTART_DELAY={}\" '
                                        '\"CONFIGURATION_BUILD_DIR={}/Build/{}\"'
