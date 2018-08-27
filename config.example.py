@@ -85,7 +85,7 @@ WH_PAYLOAD = """
         "cp": {cp},
         "move_1": {move_1},
         "move_2": {move_2},
-        "gymid": "{ext_id}",
+        "gym_id": "{ext_id}",
         "team": {team}
       }},
       "type": "{type}"
