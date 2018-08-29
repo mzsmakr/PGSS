@@ -658,18 +658,8 @@ class RaidNearby:
                     if int(mon) > 0:
                         if update_raid == True:
 
-                            form_real = 0
-                            if mon == 201:
-                                form_real = form -10
-                            elif mon == 351:
-                                form_real = form +18
-                            elif mon == 386:
-                                form_real = form +22
-                            elif form == 61:
-                                form_real = 37
-
                             try:
-                                database.update_raid_mon(session, gym, mon, form_real)
+                                database.update_raid_mon(session, gym, mon, form)
                                 database.updata_fort_sighting(session, gym, unix_time)
                                 session.commit()
                                 LOG.info('!!!!! New raid boss is added. !!!!!')
