@@ -111,14 +111,20 @@ class Fort(Base):
 
     sightings = relationship(
         'FortSighting',
-        backref='fort',
+        backref='forts',
         order_by='FortSighting.last_modified'
     )
 
     raids = relationship(
         'Raid',
-        backref='fort',
+        backref='forts',
         order_by='Raid.time_end'
+    )
+
+    gymimages = relationship(
+        'GymImage',
+        backref='forts',
+        order_by='GymImage.created'
     )
 
 class FortSighting(Base):
@@ -132,7 +138,7 @@ class FortSighting(Base):
     slots_available = Column(SmallInteger)
     is_in_battle = Column(Boolean, default=False)
     updated = Column(Integer,default=time,onupdate=time)
-    #total_cp = Column(SmallInteger)
+    total_cp = Column(SmallInteger)
 
     __table_args__ = (
         UniqueConstraint(
@@ -162,7 +168,7 @@ class GymImage(Base):
     __tablename__ = 'gym_images'
     
     id = Column(Integer, primary_key=True)
-    fort_id = Column(Integer)
+    fort_id = Column(Integer, ForeignKey("forts.id"))
     param_1 = Column(Integer)
     param_2 = Column(Integer)
     param_3 = Column(Integer)
@@ -170,6 +176,18 @@ class GymImage(Base):
     param_5 = Column(Integer)
     param_6 = Column(Integer)
     created = Column(Integer,default=time)
+
+    __table_args__ = (
+        UniqueConstraint(
+            'param_1',
+            'param_2',
+            'param_3',
+            'param_4',
+            'param_5',
+            'param_6',
+            name='params_unique'
+        ),
+    )
 
 class PokemonImage(Base):
     __tablename__ = 'pokemon_images'
@@ -185,6 +203,19 @@ class PokemonImage(Base):
     param_6 = Column(Integer)
     param_7 = Column(Integer)
     created = Column(Integer,default=time)
+
+    __table_args__ = (
+        UniqueConstraint(
+            'param_1',
+            'param_2',
+            'param_3',
+            'param_4',
+            'param_5',
+            'param_6',
+            'param_7',
+            name='params_unique'
+        ),
+    )
 
 class DeviceLocationHistory(Base):
     __tablename__ = 'device_location_history'
