@@ -28,7 +28,7 @@ class Crop:
         self.screenshot_path = Path(self.config.SCREENSHOT_SAVE_PATH)
         self.crop_save_path = os.getcwd() + '/process_img/'
         self.not_find_path = os.getcwd() + '/not_find_img/'
-        self.web_server_path = os.getcwd()+'/webserver/'
+        self.web_img_path = os.getcwd()+'/web_img/'
 
         # Create directories if not exists
         file_path = os.path.dirname(self.crop_save_path)
@@ -43,9 +43,9 @@ class Crop:
             os.makedirs(file_path)
 
         # Create directories if not exists
-        file_path = os.path.dirname(self.web_server_path)
+        file_path = os.path.dirname(self.web_img_path)
         if not os.path.exists(file_path):
-            LOG.info('not_find_img directory created')
+            LOG.info('web_img directory created')
             os.makedirs(file_path)
 
         self.init_crop_py = False
@@ -238,9 +238,14 @@ class Crop:
                 shutil.copy2(fullpath_filename, self.not_find_path+'Screen_' + str(width) + 'x' + str(height) + ext)
                 LOG.info('No size matching config found in RAID_NEARBY_SIZE')
                 LOG.info('Check not_find_img directory and add RAID_NEARBY_SIZE in config for the screenshot iamge')
-            img = cv2.resize(img, None, fx=0.35, fy=0.35)
-            save_file_path = self.web_server_path+'screenshot.jpg'
-            cv2.imwrite(save_file_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
+
+
+            split = filename.split('_')
+            if len(split) > 1:
+                device_uuid = split[0]
+                save_file_path = self.web_img_path + 'Device_' + device_uuid + '.png'
+                shutil.copy(fullpath_filename, save_file_path)
+
             os.remove(fullpath_filename)
             time.sleep(0.1)
 

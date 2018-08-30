@@ -67,6 +67,7 @@ class RaidNearby:
         self.copy_path = os.getcwd() + '/unknown_img/'
         self.not_find_path = os.getcwd() + '/not_find_img/'
         self.success_img_path = os.getcwd() + '/success_img/'
+        self.web_img_path = os.getcwd()+'/web_img/'
 
         # Create directories if not exists
         file_path = os.path.dirname(self.process_img_path)
@@ -87,6 +88,11 @@ class RaidNearby:
         file_path = os.path.dirname(self.not_find_path)
         if not os.path.exists(file_path):
             LOG.info('not_find_img directory created')
+            os.makedirs(file_path)
+
+        file_path = os.path.dirname(self.web_img_path)
+        if not os.path.exists(file_path):
+            LOG.info('web_img directory created')
             os.makedirs(file_path)
 
         self.p = Path(self.process_img_path)
@@ -599,6 +605,9 @@ class RaidNearby:
         level = self.detectLevel(level_img)
         gym_image_id, gym, error_gym = self.detectGym(img_full, level)
 
+        web_img_filename = self.web_img_path + 'GymImage_' + str(gym_image_id) + '.png'
+        shutil.copy(raidfilename, web_img_filename)
+
         update_raid = True    
         # old file
         if unix_time - file_update_time > 1800:
@@ -643,6 +652,10 @@ class RaidNearby:
                     LOG.info('Skip update raid due to old file')
             else:
                 mon_image_id, mon, form, error_mon = self.detectMon(img_full)
+
+                web_img_filename = self.web_img_path + 'PokemonImage_' + str(mon_image_id) + '.png'
+                shutil.copy(raidfilename, web_img_filename)
+
                 pokemon_id = database.get_raid_pokemon_id(session, gym)
                 end_time = database.get_raid_time(session, gym)
 

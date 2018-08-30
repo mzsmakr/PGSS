@@ -77,7 +77,6 @@ class FindFort:
         img = cv2.imread(str(pokemon_fullpath_filename), 3)
         pokemon_image_id = self.raidnearby.get_pokemon_image_id(img)
         pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
-
         diff = abs(min_result - min_result_2)
         if pokemon is None or (diff < 0.005 and pokemon.id != pokemon_2.id) or \
                 (min_result > 0.055 and diff < 0.1) \
