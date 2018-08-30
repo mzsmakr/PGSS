@@ -138,7 +138,6 @@ class FortSighting(Base):
     slots_available = Column(SmallInteger)
     is_in_battle = Column(Boolean, default=False)
     updated = Column(Integer,default=time,onupdate=time)
-    total_cp = Column(SmallInteger)
 
     __table_args__ = (
         UniqueConstraint(
