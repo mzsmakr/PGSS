@@ -43,7 +43,6 @@ class FindFort:
         self.success_img_path = os.getcwd() + '/success_img/'
         self.need_check_img_path = os.getcwd() + '/need_check_img/'
         self.not_find_img_pth = os.getcwd() + '/not_find_img/'
-        self.web_img_path = os.getcwd()+'/web_img/'
         self.raidnearby = rs.RaidNearby(-1)
 
     def run_pokemonmatching(self, session, pokemon_fullpath_filename):
@@ -78,10 +77,6 @@ class FindFort:
         img = cv2.imread(str(pokemon_fullpath_filename), 3)
         pokemon_image_id = self.raidnearby.get_pokemon_image_id(img)
         pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
-
-
-        web_img_filename = self.web_img_path + 'PokemonImage_' + str(pokemon_image_id) + '.png'
-        shutil.copy(pokemon_fullpath_filename, web_img_filename)
         diff = abs(min_result - min_result_2)
         if pokemon is None or (diff < 0.005 and pokemon.id != pokemon_2.id) or \
                 (min_result > 0.055 and diff < 0.1) \
@@ -239,8 +234,6 @@ class FindFort:
         img = cv2.imread(str(fort_fullpath_filename), 3)
         gym_image_id = self.raidnearby.get_gym_image_id(img)
         gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
-        web_img_filename = self.web_img_path + 'GymImage_' + str(gym_image_id) + '.png'
-        shutil.copy(fort_fullpath_filename, web_img_filename)
         if float(max_value) >= matching_threshold:
             LOG.info(str(fort_fullpath_filename))
             if gym_image_fort_id is not None and int(max_fort_id) == int(gym_image_fort_id):
@@ -322,9 +315,6 @@ class FindFort:
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file_path = os.path.dirname(self.not_find_img_pth)
-            if not os.path.exists(file_path):
-                os.makedirs(file_path)
-            file_path = os.path.dirname(self.web_img_path)
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
 
