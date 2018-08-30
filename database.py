@@ -184,7 +184,7 @@ class GymImage(Base):
             'param_4',
             'param_5',
             'param_6',
-            name='params_unique'
+            name='gym_images_params_unique'
         ),
     )
 
@@ -212,7 +212,7 @@ class PokemonImage(Base):
             'param_5',
             'param_6',
             'param_7',
-            name='params_unique'
+            name='pokemon_images_params_unique'
         ),
     )
 
