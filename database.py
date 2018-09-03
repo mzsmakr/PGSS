@@ -319,6 +319,7 @@ def update_raid_egg(session, fort_id, level, time_battle):
         raid = session.query(Raid).filter_by(fort_id=fort_id).first()
     raid.level = int(level)
     raid.pokemon_id = 0
+    raid.form = None
     raid.time_spawn = time_battle - 3600
     raid.time_battle = time_battle
     raid.time_end = time_battle + 2700
