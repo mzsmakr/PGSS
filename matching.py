@@ -8,6 +8,9 @@ def fort_image_matching(url_img_name, fort_img_name, crop_area = 0):
     url_img = cv2.imread(url_img_name, 3)
     fort_img = cv2.imread(fort_img_name, 3)
 
+    if url_img is None or fort_img is None:
+        return 0.0
+
     height, width, channels = url_img.shape
 
     if url_img_ext == '.jpg':
@@ -82,6 +85,9 @@ def fort_image_matching_imshow(url_img_name, fort_img_name, crop_area = 0):
 
     url_img = cv2.imread(url_img_name, 3)
     fort_img = cv2.imread(fort_img_name, 3)
+
+    if url_img is None or fort_img is None:
+        return 0.0
 
     height, width, channels = url_img.shape
 
@@ -173,6 +179,9 @@ def pokemon_image_matching(pokemon_image_name, fort_img_name, is_pokemon):
 
     pokemon_image = cv2.imread(pokemon_image_name, cv2.IMREAD_UNCHANGED)
     fort_img = cv2.imread(fort_img_name, 3)
+
+    if pokemon_image is None or fort_img is None:
+        return 100000.0
 
     croped = pokemon_image[0:256,0:190]
 

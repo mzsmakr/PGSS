@@ -75,12 +75,17 @@ class FindFort:
 
 
         img = cv2.imread(str(pokemon_fullpath_filename), 3)
-        pokemon_image_id = self.raidnearby.get_pokemon_image_id(img)
-        pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
+
+        if img is None:
+            LOG.error('Can not read pokemon image file: {}, check the image'.format(pokemon_fullpath_filename))
+        else:
+            pokemon_image_id = self.raidnearby.get_pokemon_image_id(img)
+            pokemon_image_pokemon_id = db.get_pokemon_image_pokemon_id(session, pokemon_image_id)
+
         diff = abs(min_result - min_result_2)
         if pokemon is None or (diff < 0.005 and pokemon.id != pokemon_2.id) or \
                 (min_result > 0.055 and diff < 0.1) \
-                or min_result > 1.5:
+                or min_result > 1.5 or img is None:
             LOG.info('Can not find pokemon image: {}, check the image in not_find_img'.format(pokemon_image_id))
             pokemon_result_file = os.getcwd() + '/not_find_img/PokemonImage_{}.png'.format(pokemon_image_id)
             shutil.move(pokemon_fullpath_filename, pokemon_result_file)
@@ -232,9 +237,17 @@ class FindFort:
 
         LOG.info('fort_filename:{} max_fort_id: {} max_value: {}'.format(fort_filename,max_fort_id, max_value))
         img = cv2.imread(str(fort_fullpath_filename), 3)
-        gym_image_id = self.raidnearby.get_gym_image_id(img)
-        gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
-        if float(max_value) >= matching_threshold:
+
+        gym_image_id = None
+        gym_image_fort_id = None
+
+        if img is None:
+            LOG.error('Can not read gym image file: {}, check the image'.format(fort_fullpath_filename))
+        else:
+            gym_image_id = self.raidnearby.get_gym_image_id(img)
+            gym_image_fort_id = db.get_gym_image_fort_id(session, gym_image_id)
+
+        if float(max_value) >= matching_threshold and gym_image_id is not None and gym_image_fort_id is not None:
             LOG.info(str(fort_fullpath_filename))
             if gym_image_fort_id is not None and int(max_fort_id) == int(gym_image_fort_id):
                 LOG.info('This gym image is already trained')
@@ -275,7 +288,7 @@ class FindFort:
                     url_result_file = os.getcwd() + '/not_find_img/Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
                     shutil.move(fort_fullpath_filename, fort_result_file)
                     shutil.copy(max_url_fullpath_filename, url_result_file)
-        elif float(max_value) >= 0.40:
+        elif float(max_value) >= 0.40 and gym_image_id is not None and gym_image_fort_id is not None:
             fort_result_file = os.getcwd() + '/not_find_img/LowConfidence_Fort_' + str(max_fort_id) + '_GymImages_' + str(gym_image_id) + '_' + '{:.3f}'.format(max_value) + '.png'
             url_result_file = os.getcwd() + '/not_find_img/LowConfidence_Fort_'+str(max_fort_id) + '_url' + str(url_filename_ext)
             shutil.move(fort_fullpath_filename, fort_result_file)
