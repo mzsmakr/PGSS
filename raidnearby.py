@@ -716,6 +716,7 @@ class RaidNearby:
                                         end_time = end_time_temp
                                         hatch_time = end_time - 5400
                                         database.update_raid_egg(session, gym, level, hatch_time)
+                                        LOG.info('$$$$$ file_update_time={} time_text={} hatch_time={} end_time={} gym={}'.format(file_update_time, time_text, hatch_time, end_time, gym))
 
                                 database.update_raid_mon(session, gym, mon, form)
                                 database.updata_fort_sighting(session, gym, unix_time)
