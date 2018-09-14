@@ -580,7 +580,7 @@ class RaidNearby:
             hour_min = data.split(':')
             if len(hour_min) == 2:
                 return -1
-            if int(hour_min[0]) > 1 or hour_min[1] >= 60:
+            if int(hour_min[0]) > 1 or int(hour_min[1]) >= 60:
                 return -1
             ret, hour_min = self.checkHourMin(hour_min)
             if ret == True:
