@@ -14,6 +14,8 @@ from time import localtime, strftime
 import signal
 import datetime
 from functools import partial
+import cv2
+import numpy as np
 
 LOG = getLogger('')
 
@@ -180,6 +182,69 @@ def update_raids_and_forts(t_obj, lock, forts_static):
             time.sleep(1)
 
 
+def is_raid_nearby(device_id, unix_time):
+    web_img_path = os.getcwd() + '/web_img/'
+    file_path = web_img_path + 'Device_' + device_id + '.png'
+    file_update_time = int(os.stat(str(file_path)).st_mtime)
+    if unix_time > file_update_time:
+        # No new image after teleport
+        return False
+
+    img = cv2.imread(file_path,3)
+
+    if img is None:
+        return False
+
+    if img.dtype == 'uint16':
+        # print('16 bit image')
+        img = (img / 256).astype('uint8')
+
+    height, width, ch = img.shape
+    scale = width/640
+
+    height_ratio = 938/640
+    height_nearby = width*height_ratio
+
+    x1_p = 370/640
+    x2_p = 550/640
+    y1_p = (1136-367)/938
+    y2_p = (1136-390)/938
+
+    x1 = round(width*x1_p)
+    x2 = round(width*x2_p)
+    y1 = round(height - height_nearby*y1_p)
+    y2 = round(height - height_nearby*y2_p)
+
+    raid_bar = img[y1:y2, x1:x2]
+    hsv = cv2.cvtColor(raid_bar, cv2.COLOR_BGR2HSV)
+
+    # define range of blue color in HSV
+    lower_blue = np.array([82, 63, 87])
+    upper_blue = np.array([102, 110, 127])
+
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
+    first = int(5*scale)
+    last = int(5*scale)
+    sum_255_count = int(1*scale)
+    sum_0 = 0
+    sum_255 = 0
+
+    for i in range(mask.shape[0]):
+        sum_horizontal = int(sum(mask[i, :])/(x2-x1))
+        if i < first:
+            sum_0 = sum_0 + sum_horizontal
+        elif i >= mask.shape[0] - last:
+            sum_0 = sum_0 + sum_horizontal
+        else:
+            if sum_horizontal == 255:
+                sum_255 += 1
+
+    if sum_0 == 0 and sum_255 >= sum_255_count:
+        return True
+    else:
+        return False
+
+
 def update_device_location(t_obj, lock, device, sleep, process_id):
 
     last_teleport = 0
@@ -287,6 +352,21 @@ def update_device_location(t_obj, lock, device, sleep, process_id):
                 LOG.info(
                     'Teleporting device with ID {} to {},{} over {:0.0f}m (delay: {:0.2f}s, last ago: {:0.2f}s)'.format(
                         device, fort.lat, fort.lon, distance, delay, last_tp_time))
+
+                raid_nearby_opened = False
+                raid_nearby_wait_count = 0
+                time.sleep(sleep-0.5)
+                now = datetime.datetime.now()
+                unix_time = int(now.timestamp())
+                # Wait until new screenshot captured and raid nearby opened
+                while raid_nearby_opened is False:
+                    time.sleep(0.5)
+                    raid_nearby_opened = is_raid_nearby(device, unix_time)
+                    if t_obj.is_teleport_locked(process_id):
+                        raid_nearby_opened = True
+                    raid_nearby_wait_count += 1
+                    if raid_nearby_wait_count%2==0:
+                        LOG.info('Waiting device {} to open raid nearby at location {}, {}'.format(device, fort.lat, fort.lon))
 
                 session = database.Session()
                 database.add_device_location_history(session, device, time_end, fort.lat, fort.lon)

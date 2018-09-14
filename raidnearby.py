@@ -170,6 +170,15 @@ class RaidNearby:
                                            config='-c tessedit_char_whitelist=1234567890:~-AMP -psm 7')
         return text
 
+    def detectRaidBossTimer(self, time_img, scale):
+        text = ''
+        if int(time_img.mean()) > 240:
+            return text
+        time_img = cv2.resize(time_img, None, fx=1.0/scale, fy=1.0/scale, interpolation=cv2.INTER_CUBIC)
+        cv2.imwrite(self.timefile,time_img)
+        text = pytesseract.image_to_string(Image.open(self.timefile),config='-c tessedit_char_whitelist=1234567890: -psm 7')
+        return text
+
     def getMonMask(self, img):
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -562,6 +571,25 @@ class RaidNearby:
             ret = False
         return ret
 
+    def getEndTime(self,file_time,data):
+        unix_zero = file_time
+        LOG.info('end_time ={}'.format(data))
+        hour_min_divider = data.find(':')
+        if hour_min_divider != -1:
+            data = data.replace(' ', '')
+            hour_min = data.split(':')
+            if len(hour_min) == 2:
+                return -1
+            if int(hour_min[0]) > 1 or hour_min[1] >= 60:
+                return -1
+            ret, hour_min = self.checkHourMin(hour_min)
+            if ret == True:
+                return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+            else:
+                return -1
+        else:
+            return -1
+
     def processRaidImage(self, raidfilename):
         filename = os.path.basename(raidfilename)
         img_full = cv2.imread(str(raidfilename),3)
@@ -601,7 +629,11 @@ class RaidNearby:
         if egg == True:
             time_text = self.detectTime(time_binary)
         else:
-            time_text = 'Raid Boss'
+            x1 = [25,int(250*scale)]
+            y1 = [int(355*scale),int(395*scale)]
+            time_img = img_full[y1[0]:y1[1], x1[0]:x1[1]]
+            time_text = self.detectRaidBossTimer(time_img, scale)
+
         level = self.detectLevel(level_img)
         gym_image_id, gym, error_gym = self.detectGym(img_full, level)
 
@@ -628,7 +660,7 @@ class RaidNearby:
                     shutil.move(raidfilename,fullpath_dest)
                     return False
                 #spawn_time = hatch_time - 3600
-                end_time = hatch_time + 2700
+                end_time = hatch_time + 5400
                 time_battle = database.get_raid_battle_time(session, gym)
                 LOG.info('Egg: level={} time_text={} gym={} error_gym={} hatch_time={} time_battle={}'.format(level, time_text, gym, error_gym, hatch_time, time_battle))
                 if update_raid == True:
@@ -665,13 +697,26 @@ class RaidNearby:
                     shutil.move(raidfilename,fullpath_dest)
                 LOG.info('Pokemon: level={} time_text={} gym={} error_gym={} mon={} error_mon={}'.format(level, time_text, gym, error_gym, mon, error_mon))
                 LOG.info('mon:{} pokemon_id:{}'.format(mon,pokemon_id))
-                if int(mon) == int(pokemon_id) and int(mon) > 0:
+                if int(mon) == int(pokemon_id) and int(mon) > 0 and end_time > unix_time:
                     LOG.info('This mon is already assigned.')
                 else:            
                     if int(mon) > 0:
                         if update_raid == True:
 
                             try:
+                                if end_time < unix_time:
+                                    # extract screenshot time if the file is from RDRM
+                                    parts = str(filename_no_ext).split('_')
+                                    if len(parts) >= 3 and len(parts[0]) == 40 and len(parts[1]) == 10:
+                                        if parts[1].isdecimal():
+                                            file_update_time = int(parts[1])
+
+                                    end_time_temp = self.getEndTime(file_update_time, time_text)
+                                    if end_time_temp != -1:
+                                        end_time = end_time_temp
+                                        hatch_time = end_time - 5400
+                                        database.update_raid_egg(session, gym, level, hatch_time)
+
                                 database.update_raid_mon(session, gym, mon, form)
                                 database.updata_fort_sighting(session, gym, unix_time)
                                 session.commit()
@@ -813,7 +858,7 @@ class RaidNearby:
             poke_id=poke_id,
             lvl=lvl,
             end=end,
-            hatch_time=end-2700,
+            hatch_time=end-5400,
             move_1 = move_1,
             move_2 = move_2,
             cp = cp,
