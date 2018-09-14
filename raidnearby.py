@@ -171,6 +171,9 @@ class RaidNearby:
         return text
 
     def detectRaidBossTimer(self, time_img, scale):
+        text = ''
+        if int(time_img.mean()) > 240:
+            return text
         time_img = cv2.resize(time_img, None, fx=1.0/scale, fy=1.0/scale, interpolation=cv2.INTER_CUBIC)
         cv2.imwrite(self.timefile,time_img)
         text = pytesseract.image_to_string(Image.open(self.timefile),config='-c tessedit_char_whitelist=1234567890: -psm 7')
@@ -573,9 +576,12 @@ class RaidNearby:
         LOG.info('end_time ={}'.format(data))
         hour_min_divider = data.find(':')
         if hour_min_divider != -1:
+            data = data.replace(' ', '')
             hour_min = data.split(':')
             if len(hour_min) == 2:
-                hour_min.insert(0,"00")
+                return -1
+            if int(hour_min[0]) > 1 or hour_min[1] >= 60:
+                return -1
             ret, hour_min = self.checkHourMin(hour_min)
             if ret == True:
                 return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
