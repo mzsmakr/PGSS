@@ -187,7 +187,7 @@ def is_raid_nearby(device_id, unix_time):
     file_path = web_img_path + 'Device_' + device_id + '.png'
     file_update_time = int(os.stat(str(file_path)).st_mtime)
     if unix_time > file_update_time:
-        LOG.info('No new image after teleport')
+        # No new image after teleport
         return False
 
     img = cv2.imread(file_path,3)
