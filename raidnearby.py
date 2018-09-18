@@ -171,11 +171,45 @@ class RaidNearby:
         return text
 
     def detectRaidBossTimer(self, time_img, scale):
-        text = ''
         if int(time_img.mean()) > 240:
-            return text
+            return ''
         time_img = cv2.resize(time_img, None, fx=1.0/scale, fy=1.0/scale, interpolation=cv2.INTER_CUBIC)
-        cv2.imwrite(self.timefile,time_img)
+
+        img_gray = cv2.cvtColor(time_img, cv2.COLOR_BGR2GRAY)
+        ret, thresh1 = cv2.threshold(img_gray, 220, 255, cv2.THRESH_BINARY_INV)
+        kernel = np.ones((2, 2), np.uint8)
+        time_binary = cv2.erode(thresh1, kernel, iterations=1)
+
+        #        img_gray = cv2.cvtColor(time_img, cv2.COLOR_BGR2GRAY)
+        #        ret, thresh1 = cv2.threshold(img_gray, 230, 255, cv2.THRESH_BINARY_INV)
+        final_img = np.zeros((time_binary.shape[0], int(time_binary.shape[1] * 0.25)), np.uint8)
+        right_img = np.zeros((time_binary.shape[0], int(time_binary.shape[1] * 0.15)), np.uint8)
+        separate_img = np.zeros((time_binary.shape[0], int(time_binary.shape[1] * 0.1)), np.uint8)
+        profile = []
+        letter_start = []
+        letter_end = []
+        count = 0
+        valley_threshold = 256
+        # get letters separation pixels
+        for i in range(time_binary.shape[1]):
+            sum_vertical = sum(time_binary[:, i])
+            profile.append(sum_vertical)
+            if len(letter_start) == len(letter_end):
+                if sum_vertical > valley_threshold:
+                    letter_start.append(i)
+            else:
+                if sum_vertical <= valley_threshold:
+                    letter_end.append(i)
+                    count = count + 1
+        # Add blank(black) space between letters
+        for i in range(count):
+            final_img = cv2.hconcat([final_img, time_binary[0:time_binary.shape[0], letter_start[i]:letter_end[i]]])
+            final_img = cv2.hconcat([final_img, separate_img])
+        final_img = cv2.hconcat([final_img, right_img])
+        kernel = np.ones((2, 2), np.uint8)
+        final_img = cv2.dilate(final_img, kernel, iterations=1)
+        cv2.imwrite(self.timefile, final_img)
+
         text = pytesseract.image_to_string(Image.open(self.timefile),config='-c tessedit_char_whitelist=1234567890: -psm 7')
         return text
 
@@ -574,17 +608,15 @@ class RaidNearby:
     def getEndTime(self,file_time,data):
         unix_zero = file_time
         LOG.info('end_time ={}'.format(data))
-        hour_min_divider = data.find(':')
-        if hour_min_divider != -1:
+        time_divider_count = data.count(':')
+        if time_divider_count == 2:
             data = data.replace(' ', '')
             hour_min = data.split(':')
-            if len(hour_min) == 2:
-                return -1
             if int(hour_min[0]) > 1 or int(hour_min[1]) >= 60:
                 return -1
             ret, hour_min = self.checkHourMin(hour_min)
             if ret == True:
-                return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60+int(hour_min[2])
             else:
                 return -1
         else:
