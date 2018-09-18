@@ -744,11 +744,15 @@ class RaidNearby:
                                             file_update_time = int(parts[1])
 
                                     end_time_temp = self.getEndTime(file_update_time, time_text)
-                                    if end_time_temp != -1:
+                                    if end_time_temp != -1 && end_time_temp != 0:
                                         end_time = end_time_temp
                                         hatch_time = end_time - 5400
                                         database.update_raid_egg(session, gym, level, hatch_time)
                                         LOG.info('$$$$$ file_update_time={} time_text={} hatch_time={} end_time={} gym={}'.format(file_update_time, time_text, hatch_time, end_time, gym))
+                                    else:
+                                        LOG.error('active raid time detection failed.')
+                                        LOG.info('$$$$$ file_update_time={} time_text={} hatch_time={} end_time={} gym={}'.format(file_update_time, time_text, hatch_time, end_time, gym))
+                                        return False
 
                                 database.update_raid_mon(session, gym, mon, form)
                                 database.updata_fort_sighting(session, gym, unix_time)
