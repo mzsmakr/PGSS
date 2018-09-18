@@ -455,11 +455,11 @@ def start_ui_test(device_uuid, log_path, derived_data_path, screenshot_delay, re
                             .format(device_uuid, str(derived_data_path), str(derived_data_path), str(device_uuid),
                                     str(bundle_id), str(team_id)),
                             cwd=str(path), shell=True, stdout=stdout, stderr=stdout)
-                        process.wait(60)
+                        process.wait(600)
                         process = None
                         did_stop = True
 
-                    time.sleep(600)
+                    time.sleep(60)
                     continue
                 else:
                     if did_stop:
