@@ -744,7 +744,7 @@ class RaidNearby:
                                             file_update_time = int(parts[1])
 
                                     end_time_temp = self.getEndTime(file_update_time, time_text)
-                                    if end_time_temp != -1 && end_time_temp != 0:
+                                    if end_time_temp != -1 and end_time_temp != 0:
                                         end_time = end_time_temp
                                         hatch_time = end_time - 5400
                                         database.update_raid_egg(session, gym, level, hatch_time)
