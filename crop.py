@@ -255,13 +255,13 @@ class Crop:
             LOG.debug('Screenshot path:{}'.format(self.screenshot_path))
             process_count = self.config.CROP_PROCESSES
             while True:
-                for fullpath_filename in self.screenshot_path.glob('*.jpg'):
+                for fullpath_filename in self.screenshot_path.glob('**/*.jpg'):
                     if process_count > 1 and not \
                             int(hashlib.md5(str(fullpath_filename).encode('utf-8')).hexdigest(), 16)\
                             % process_count == task_id:
                         continue
                     self.crop_img(fullpath_filename)
-                for fullpath_filename in self.screenshot_path.glob('*.png'):
+                for fullpath_filename in self.screenshot_path.glob('**/*.png'):
                     if process_count > 1 and not \
                             int(hashlib.md5(str(fullpath_filename).encode('utf-8')).hexdigest(), 16)\
                             % process_count == task_id:

@@ -57,7 +57,7 @@ RESTART_DELAYS = [600, 600]
 
 from os import path
 DERIVED_DATA_PATH = path.dirname(path.realpath(__file__))+'/DerivedData'
-SCREENSHOT_SAVE_PATH = path.dirname(path.realpath(__file__))+'/DerivedData/Logs/Test/Attachments'
+SCREENSHOT_SAVE_PATH = path.dirname(path.realpath(__file__))+'/DerivedData/Logs/Test'
 
 RAID_START_TIME = "06:00"
 RAID_END_TIME = "20:00"
