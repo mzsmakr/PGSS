@@ -660,7 +660,7 @@ class RaidNearby:
                     shutil.move(raidfilename,fullpath_dest)
                     return False
                 #spawn_time = hatch_time - 3600
-                end_time = hatch_time + 2700
+                end_time = hatch_time + self.config.RAID_SECONDS
                 time_battle = database.get_raid_battle_time(session, gym)
                 LOG.info('Egg: level={} time_text={} gym={} error_gym={} hatch_time={} time_battle={}'.format(level, time_text, gym, error_gym, hatch_time, time_battle))
                 if update_raid == True:
@@ -714,7 +714,7 @@ class RaidNearby:
                                     end_time_temp = self.getEndTime(file_update_time, time_text)
                                     if end_time_temp != -1:
                                         end_time = end_time_temp
-                                        hatch_time = end_time - 2700
+                                        hatch_time = end_time - self.config.RAID_SECONDS
                                         database.update_raid_egg(session, gym, level, hatch_time)
                                         LOG.info('$$$$$ file_update_time={} time_text={} hatch_time={} end_time={} gym={}'.format(file_update_time, time_text, hatch_time, end_time, gym))
 
@@ -859,7 +859,7 @@ class RaidNearby:
             poke_id=poke_id,
             lvl=lvl,
             end=end,
-            hatch_time=end-2700,
+            hatch_time=end-self.config.RAID_SECONDS,
             move_1 = move_1,
             move_2 = move_2,
             cp = cp,

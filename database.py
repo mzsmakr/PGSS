@@ -320,9 +320,9 @@ def update_raid_egg(session, fort_id, level, time_battle):
     raid.level = int(level)
     raid.pokemon_id = 0
     raid.form = None
-    raid.time_spawn = time_battle - 3600
+    raid.time_spawn = time_battle - config.EGG_SECONDS
     raid.time_battle = time_battle
-    raid.time_end = time_battle + 2700
+    raid.time_end = time_battle + config.RAID_SECONDS
     raid.move_1 = 0
     raid.move_2 = 0
     raid.cp = 0
