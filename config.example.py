@@ -52,7 +52,7 @@ SCAN_AREA = None
 DEVICE_LIST = None
 #DEVICE_LIST = ['168069373365c2dbf9155169cfa3dc2d25068761', 'xxx']
 TELEPORT_DELAYS = [5, 5]
-SCREENSHOT_DELAYS = [0.25, 0.25]
+SCREENSHOT_DELAYS = [1.0, 1.0]
 RESTART_DELAYS = [600, 600]
 
 from os import path
@@ -61,6 +61,9 @@ SCREENSHOT_SAVE_PATH = path.dirname(path.realpath(__file__))+'/DerivedData/Logs/
 
 RAID_START_TIME = "06:00"
 RAID_END_TIME = "20:00"
+
+EGG_SECONDS = 3600
+RAID_SECONDS = 2700
 
 # the corner points of a rectangle for download gym url image
 # If either of them is (0, 0) then download all gym url image in database
