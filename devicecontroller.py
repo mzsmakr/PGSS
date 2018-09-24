@@ -185,6 +185,11 @@ def update_raids_and_forts(t_obj, lock, forts_static):
 def is_raid_nearby(device_id, unix_time):
     web_img_path = os.getcwd() + '/web_img/'
     file_path = web_img_path + 'Device_' + device_id + '.png'
+
+    if os.path.isfile(str(file_path)) is False:
+        LOG.error('{} not found. Check UITest/crop.py are running correctly.'.format(str(file_path)))
+        return False
+
     file_update_time = int(os.stat(str(file_path)).st_mtime)
     if unix_time > file_update_time:
         # No new image after teleport
