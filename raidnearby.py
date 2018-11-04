@@ -531,7 +531,7 @@ class RaidNearby:
                 hour_min = data.split(':')
                 ret, hour_min = self.checkHourMin(hour_min)
                 if ret == True:
-                    return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                    return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60 + 3600
                 else:
                     return -1
             elif PM >= 4:
@@ -544,9 +544,9 @@ class RaidNearby:
                 ret, hour_min = self.checkHourMin(hour_min)
                 if ret == True:
                     if hour_min[0] == '12':
-                        return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60
+                        return int(unix_zero)+int(hour_min[0])*3600+int(hour_min[1])*60 + 3600
                     else:
-                        return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60
+                        return int(unix_zero)+(int(hour_min[0])+12)*3600+int(hour_min[1])*60 + 3600
                 else:
                     return -1
             # Europe format
