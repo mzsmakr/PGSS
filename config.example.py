@@ -27,10 +27,10 @@ RAID_NEARBY_SIZE = [
                      'comp2_x': 190, 'comp2_y': 590, 'crop2_x1': 188, 'crop2_x2': 406,
                      'comp1_x': 300, 'comp1_y': 590, 'crop1_x1': 297},  # iPhone
 
-                    {'width': 640, 'height': 1136, 'crop_w': 134, 'crop_h': 221, 'crop_y1': 436, 'crop_y2': 690,
-                     'comp3_x': 69, 'comp3_y': 503, 'crop3_x1': 67, 'crop3_x2': 253, 'crop3_x3': 440,
-                     'comp2_x': 162, 'comp2_y': 503, 'crop2_x1': 160, 'crop2_x2': 347,
-                     'comp1_x': 255, 'comp1_y': 503, 'crop1_x1': 253},  # iPhone SE
+                    {'width': 640, 'height': 1136, 'crop_w': 134, 'crop_h': 221, 'crop_y1': 302, 'crop_y2': 556,
+                     'comp3_x': 69, 'comp3_y': 369, 'crop3_x1': 67, 'crop3_x2': 253, 'crop3_x3': 440,
+                     'comp2_x': 162, 'comp2_y': 369, 'crop2_x1': 160, 'crop2_x2': 347,
+                     'comp1_x': 255, 'comp1_y': 369, 'crop1_x1': 253},  # iPhone SE
 
                     {'width': 1242, 'height': 2208, 'crop_w': 259, 'crop_h': 424, 'crop_y1': 850, 'crop_y2': 1342,
                      'comp3_x': 133, 'comp3_y': 980, 'crop3_x1': 130, 'crop3_x2': 492, 'crop3_x3': 854,
