@@ -207,13 +207,13 @@ def is_raid_nearby(device_id, unix_time):
     height, width, ch = img.shape
     scale = width/640
 
-    height_ratio = 938/640
+    height_ratio = 1030/640
     height_nearby = width*height_ratio
 
     x1_p = 370/640
     x2_p = 550/640
-    y1_p = (1136-367)/938
-    y2_p = (1136-390)/938
+    y1_p = (1136-254)/1030
+    y2_p = (1136-277)/1030
 
     x1 = round(width*x1_p)
     x2 = round(width*x2_p)
