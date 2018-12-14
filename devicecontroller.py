@@ -210,8 +210,8 @@ def is_raid_nearby(device_id, unix_time):
     height_ratio = 1030/640
     height_nearby = width*height_ratio
 
-    x1_p = 370/640
-    x2_p = 550/640
+    x1_p = 468/640
+    x2_p = 560/640
     y1_p = (1136-254)/1030
     y2_p = (1136-277)/1030
 
